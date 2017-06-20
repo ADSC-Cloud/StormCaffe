@@ -147,245 +147,230 @@ public class caffe {
         // RegisterBrewFunction(name, func);
 
         // Device Query: show diagnostic information for a GPU device.
-        RegisterBrewFunction("device_query", new BrewFunction() {
-            public int command() {
-                Integer gpu = flags.getValue("gpu");
-                if (gpu < 0) {
-                    throw new RuntimeException("Need a device ID to query.");
-                }
-                logger.info("Querying device ID = " + gpu);
-                Caffe.SetDevice(gpu);
-                Caffe.DeviceQuery();
-                return 0;
+        RegisterBrewFunction("device_query", () -> {
+            Integer gpu = flags.getValue("gpu");
+            if (gpu < 0) {
+                throw new RuntimeException("Need a device ID to query.");
             }
+            logger.info("Querying device ID = " + gpu);
+            Caffe.SetDevice(gpu);
+            Caffe.DeviceQuery();
+            return 0;
         });
 
-        // Train / Finetune a model.
-        RegisterBrewFunction("train", new BrewFunction() {
-            public int command() {
-                Integer gpu = flags.getValue("gpu");
-                String solverFlag = flags.getValue("solver");
-                String snapshot = flags.getValue("snapshot");
-                String weights = flags.getValue("weights");
-                if (solverFlag.length() == 0) {
-                    throw new RuntimeException("Need a solver definition to train.");
-                }
-                if (snapshot.length() > 0 && weights.length() > 0) {
-                    throw new RuntimeException(
-                            "Give a snapshot to resume training or weights to finetune "
-                                    + "but not both.");
-                }
-
-                SolverParameter solver_param = new SolverParameter();
-                ReadProtoFromTextFileOrDie(solverFlag, solver_param);
-
-                // If the gpu flag is not provided, allow the mode and device to be set
-                // in the solver prototxt.
-                if (gpu < 0 && solver_param.solver_mode() == SolverParameter_SolverMode_GPU) {
-                    gpu = solver_param.device_id();
-                }
-
-                // Set device id and mode
-                if (gpu >= 0) {
-                    logger.info("Use GPU with device ID " + gpu);
-                    Caffe.SetDevice(gpu);
-                    Caffe.set_mode(Caffe.GPU);
-                } else {
-                    logger.info("Use CPU.");
-                    Caffe.set_mode(Caffe.CPU);
-                }
-
-                logger.info("Starting Optimization");
-                FloatSolver solver = FloatSolverRegistry.CreateSolver(solver_param);
-
-                if (snapshot.length() > 0) {
-                    logger.info("Resuming from " + snapshot);
-                    solver.Solve(snapshot);
-                } else if (weights.length() > 0) {
-                    CopyLayers(solver, weights);
-                    solver.Solve();
-                } else {
-                    solver.Solve();
-                }
-                logger.info("Optimization Done.");
-                return 0;
+        // Train or fine-tune a model.
+        RegisterBrewFunction("train", () -> {
+            Integer gpu = flags.getValue("gpu");
+            String solverFlag = flags.getValue("solver");
+            String snapshot = flags.getValue("snapshot");
+            String weights = flags.getValue("weights");
+            if (solverFlag.length() == 0) {
+                throw new RuntimeException("Need a solver definition to train.");
             }
+            if (snapshot.length() > 0 && weights.length() > 0) {
+                throw new RuntimeException(
+                        "Give a snapshot to resume training or weights to finetune "
+                                + "but not both.");
+            }
+
+            SolverParameter solver_param = new SolverParameter();
+            ReadProtoFromTextFileOrDie(solverFlag, solver_param);
+
+            // If the gpu flag is not provided, allow the mode and device to be set
+            // in the solver prototxt.
+            if (gpu < 0 && solver_param.solver_mode() == SolverParameter_SolverMode_GPU) {
+                gpu = solver_param.device_id();
+            }
+
+            // Set device id and mode
+            if (gpu >= 0) {
+                logger.info("Use GPU with device ID " + gpu);
+                Caffe.SetDevice(gpu);
+                Caffe.set_mode(Caffe.GPU);
+            } else {
+                logger.info("Use CPU.");
+                Caffe.set_mode(Caffe.CPU);
+            }
+
+            logger.info("Starting Optimization");
+            FloatSolver solver = FloatSolverRegistry.CreateSolver(solver_param);
+
+            if (snapshot.length() > 0) {
+                logger.info("Resuming from " + snapshot);
+                solver.Solve(snapshot);
+            } else if (weights.length() > 0) {
+                CopyLayers(solver, weights);
+                solver.Solve();
+            } else {
+                solver.Solve();
+            }
+            logger.info("Optimization Done.");
+            return 0;
         });
 
         // Test: score a model.
-        RegisterBrewFunction("test", new BrewFunction() {
-            public int command() {
-                Integer gpu = flags.getValue("gpu");
-                String model = flags.getValue("model");
-                String weights = flags.getValue("weights");
-                Integer iterations = flags.getValue("iterations");
-                if (model.length() == 0) {
-                    throw new RuntimeException("Need a model definition to score.");
-                }
-                if (weights.length() == 0) {
-                    throw new RuntimeException("Need model weights to score.");
-                }
-
-                // Set device id and mode
-                if (gpu >= 0) {
-                    logger.info("Use GPU with device ID " + gpu);
-                    Caffe.SetDevice(gpu);
-                    Caffe.set_mode(Caffe.GPU);
-                } else {
-                    logger.info("Use CPU.");
-                    Caffe.set_mode(Caffe.CPU);
-                }
-                // Instantiate the test.caffe net.
-                FloatNet caffe_net = new FloatNet(model, TEST);
-                caffe_net.CopyTrainedLayersFrom(weights);
-                logger.info("Running for " + iterations + " iterations.");
-
-                FloatBlobVector bottom_vec = new FloatBlobVector();
-                ArrayList<Integer> test_score_output_id = new ArrayList<Integer>();
-                ArrayList<Float> test_score = new ArrayList<Float>();
-                float loss = 0;
-                for (int i = 0; i < iterations; i++) {
-                    float[] iter_loss = new float[1];
-                    FloatBlobVector result = caffe_net.Forward(bottom_vec, iter_loss);
-                    loss += iter_loss[0];
-                    int idx = 0;
-                    for (int j = 0; j < result.size(); j++) {
-                        FloatPointer result_vec = result.get(j).cpu_data();
-                        for (int k = 0; k < result.get(j).count(); k++, idx++) {
-                            float score = result_vec.get(k);
-                            if (i == 0) {
-                                test_score.add(score);
-                                test_score_output_id.add(j);
-                            } else {
-                                test_score.set(idx, test_score.get(idx) + score);
-                            }
-                            String output_name = caffe_net.blob_names().get(
-                                    caffe_net.output_blob_indices().get(j)).getString();
-                            logger.info("Batch " + i + ", " + output_name + " = " + score);
-                        }
-                    }
-                }
-                loss /= iterations;
-                logger.info("Loss: " + loss);
-                for (int i = 0; i < test_score.size(); i++) {
-                    String output_name = caffe_net.blob_names().get(
-                            caffe_net.output_blob_indices().get(test_score_output_id.get(i))).getString();
-                    float loss_weight =
-                            caffe_net.blob_loss_weights().get(caffe_net.output_blob_indices().get(i));
-                    String loss_msg_stream = "";
-                    float mean_score = test_score.get(i) / iterations;
-                    if (loss_weight != 0) {
-                        loss_msg_stream = " (* " + loss_weight
-                                + " = " + (loss_weight * mean_score) + " loss)";
-                    }
-                    logger.info(output_name + " = " + mean_score + loss_msg_stream);
-                }
-                return 0;
+        RegisterBrewFunction("test", () -> {
+            Integer gpu = flags.getValue("gpu");
+            String model = flags.getValue("model");
+            String weights = flags.getValue("weights");
+            Integer iterations = flags.getValue("iterations");
+            if (model.length() == 0) {
+                throw new RuntimeException("Need a model definition to score.");
             }
+            if (weights.length() == 0) {
+                throw new RuntimeException("Need model weights to score.");
+            }
+
+            // Set device id and mode
+            if (gpu >= 0) {
+                logger.info("Use GPU with device ID " + gpu);
+                Caffe.SetDevice(gpu);
+                Caffe.set_mode(Caffe.GPU);
+            } else {
+                logger.info("Use CPU.");
+                Caffe.set_mode(Caffe.CPU);
+            }
+            // Instantiate the test.caffe net.
+            FloatNet caffe_net = new FloatNet(model, TEST);
+            caffe_net.CopyTrainedLayersFrom(weights);
+            logger.info("Running for " + iterations + " iterations.");
+
+            FloatBlobVector bottom_vec = new FloatBlobVector();
+            ArrayList<Integer> test_score_output_id = new ArrayList<Integer>();
+            ArrayList<Float> test_score = new ArrayList<Float>();
+            float loss = 0;
+            for (int i = 0; i < iterations; i++) {
+                float[] iter_loss = new float[1];
+                FloatBlobVector result = caffe_net.Forward(bottom_vec, iter_loss);
+                loss += iter_loss[0];
+                int idx = 0;
+                for (int j = 0; j < result.size(); j++) {
+                    FloatPointer result_vec = result.get(j).cpu_data();
+                    for (int k = 0; k < result.get(j).count(); k++, idx++) {
+                        float score = result_vec.get(k);
+                        if (i == 0) {
+                            test_score.add(score);
+                            test_score_output_id.add(j);
+                        } else {
+                            test_score.set(idx, test_score.get(idx) + score);
+                        }
+                        String output_name = caffe_net.blob_names().get(
+                                caffe_net.output_blob_indices().get(j)).getString();
+                        logger.info("Batch " + i + ", " + output_name + " = " + score);
+                    }
+                }
+            }
+            loss /= iterations;
+            logger.info("Loss: " + loss);
+            for (int i = 0; i < test_score.size(); i++) {
+                String output_name = caffe_net.blob_names().get(
+                        caffe_net.output_blob_indices().get(test_score_output_id.get(i))).getString();
+                float loss_weight =
+                        caffe_net.blob_loss_weights().get(caffe_net.output_blob_indices().get(i));
+                String loss_msg_stream = "";
+                float mean_score = test_score.get(i) / iterations;
+                if (loss_weight != 0) {
+                    loss_msg_stream = " (* " + loss_weight
+                            + " = " + (loss_weight * mean_score) + " loss)";
+                }
+                logger.info(output_name + " = " + mean_score + loss_msg_stream);
+            }
+            return 0;
         });
 
         // Time: benchmark the execution time of a model.
-        RegisterBrewFunction("time", new BrewFunction() {
-            public int command() {
-                Integer gpu = flags.getValue("gpu");
-                String model = flags.getValue("model");
-                Integer iterations = flags.getValue("iterations");
-                if (model.length() == 0) {
-                    throw new RuntimeException("Need a model definition to time.");
-                }
-
-                // Set device id and mode
-                if (gpu >= 0) {
-                    logger.info("Use GPU with device ID " + gpu);
-                    Caffe.SetDevice(gpu);
-                    Caffe.set_mode(Caffe.GPU);
-                } else {
-                    logger.info("Use CPU.");
-                    Caffe.set_mode(Caffe.CPU);
-                }
-                // Instantiate the test.caffe net.
-                FloatNet caffe_net = new FloatNet(model, TRAIN);
-
-                // Do a clean forward and backward pass, so that memory allocation are done
-                // and future iterations will be more stable.
-                logger.info("Performing Forward");
-                // Note that for the speed benchmark, we will assume that the network does
-                // not take any input blobs.
-                float[] initial_loss = new float[1];
-                caffe_net.Forward(new FloatBlobVector(), initial_loss);
-                logger.info("Initial loss: " + initial_loss[0]);
-                logger.info("Performing Backward");
-                caffe_net.Backward();
-
-                FloatLayerSharedVector layers = caffe_net.layers();
-                FloatBlobVectorVector bottom_vecs = caffe_net.bottom_vecs();
-                FloatBlobVectorVector top_vecs = caffe_net.top_vecs();
-                BoolVectorVector bottom_need_backward = caffe_net.bottom_need_backward();
-                logger.info("*** Benchmark begins ***");
-                logger.info("Testing for " + iterations + " iterations.");
-                Timer total_timer = new Timer();
-                total_timer.Start();
-                Timer forward_timer = new Timer();
-                Timer backward_timer = new Timer();
-                Timer timer = new Timer();
-                double[] forward_time_per_layer = new double[(int)layers.size()];
-                double[] backward_time_per_layer = new double[(int)layers.size()];
-                double forward_time = 0.0;
-                double backward_time = 0.0;
-                for (int j = 0; j < iterations; j++) {
-                    Timer iter_timer = new Timer();
-                    iter_timer.Start();
-                    forward_timer.Start();
-                    for (int i = 0; i < layers.size(); i++) {
-                        timer.Start();
-                        // Although Reshape should be essentially free, we include it here
-                        // so that we will notice Reshape performance bugs.
-                        layers.get(i).Reshape(bottom_vecs.get(i), top_vecs.get(i));
-                        layers.get(i).Forward(bottom_vecs.get(i), top_vecs.get(i));
-                        forward_time_per_layer[i] += timer.MicroSeconds();
-                    }
-                    forward_time += forward_timer.MicroSeconds();
-                    backward_timer.Start();
-                    for (int i = (int)layers.size() - 1; i >= 0; i--) {
-                        timer.Start();
-                        layers.get(i).Backward(top_vecs.get(i), bottom_need_backward.get(i), bottom_vecs.get(i));
-                        backward_time_per_layer[i] += timer.MicroSeconds();
-                    }
-                    backward_time += backward_timer.MicroSeconds();
-                    logger.info("Iteration: " + (j + 1) + " forward-backward time: "
-                            + iter_timer.MilliSeconds() + " ms.");
-                }
-                logger.info("Average time per layer: ");
-                for (int i = 0; i < layers.size(); ++i) {
-                    String layername = layers.get(i).layer_param().name().getString();
-                    logger.info(layername + "\tforward: "
-                            + String.format("%10g ms.", forward_time_per_layer[i] / 1000 / iterations));
-                    logger.info(layername + "\tbackward: "
-                            + String.format("%10g ms.", backward_time_per_layer[i] / 1000 / iterations));
-                }
-                total_timer.Stop();
-                logger.info("Average Forward pass: " + forward_time / 1000 / iterations + " ms.");
-                logger.info("Average Backward pass: " + backward_time / 1000 / iterations + " ms.");
-                logger.info("Average Forward-Backward: " + total_timer.MilliSeconds() / iterations + " ms.");
-                logger.info("Total Time: " + total_timer.MilliSeconds() + " ms.");
-                logger.info("*** Benchmark ends ***");
-                return 0;
+        RegisterBrewFunction("time", () -> {
+            Integer gpu = flags.getValue("gpu");
+            String model = flags.getValue("model");
+            Integer iterations = flags.getValue("iterations");
+            if (model.length() == 0) {
+                throw new RuntimeException("Need a model definition to time.");
             }
+
+            // Set device id and mode
+            if (gpu >= 0) {
+                logger.info("Use GPU with device ID " + gpu);
+                Caffe.SetDevice(gpu);
+                Caffe.set_mode(Caffe.GPU);
+            } else {
+                logger.info("Use CPU.");
+                Caffe.set_mode(Caffe.CPU);
+            }
+            // Instantiate the test.caffe net.
+            FloatNet caffe_net = new FloatNet(model, TRAIN);
+
+            // Do a clean forward and backward pass, so that memory allocation are done
+            // and future iterations will be more stable.
+            logger.info("Performing Forward");
+            // Note that for the speed benchmark, we will assume that the network does
+            // not take any input blobs.
+            float[] initial_loss = new float[1];
+            caffe_net.Forward(new FloatBlobVector(), initial_loss);
+            logger.info("Initial loss: " + initial_loss[0]);
+            logger.info("Performing Backward");
+            caffe_net.Backward();
+
+            FloatLayerSharedVector layers = caffe_net.layers();
+            FloatBlobVectorVector bottom_vecs = caffe_net.bottom_vecs();
+            FloatBlobVectorVector top_vecs = caffe_net.top_vecs();
+            BoolVectorVector bottom_need_backward = caffe_net.bottom_need_backward();
+            logger.info("*** Benchmark begins ***");
+            logger.info("Testing for " + iterations + " iterations.");
+            Timer total_timer = new Timer();
+            total_timer.Start();
+            Timer forward_timer = new Timer();
+            Timer backward_timer = new Timer();
+            Timer timer = new Timer();
+            double[] forward_time_per_layer = new double[(int)layers.size()];
+            double[] backward_time_per_layer = new double[(int)layers.size()];
+            double forward_time = 0.0;
+            double backward_time = 0.0;
+            for (int j = 0; j < iterations; j++) {
+                Timer iter_timer = new Timer();
+                iter_timer.Start();
+                forward_timer.Start();
+                for (int i = 0; i < layers.size(); i++) {
+                    timer.Start();
+                    // Although Reshape should be essentially free, we include it here
+                    // so that we will notice Reshape performance bugs.
+                    layers.get(i).Reshape(bottom_vecs.get(i), top_vecs.get(i));
+                    layers.get(i).Forward(bottom_vecs.get(i), top_vecs.get(i));
+                    forward_time_per_layer[i] += timer.MicroSeconds();
+                }
+                forward_time += forward_timer.MicroSeconds();
+                backward_timer.Start();
+                for (int i = (int)layers.size() - 1; i >= 0; i--) {
+                    timer.Start();
+                    layers.get(i).Backward(top_vecs.get(i), bottom_need_backward.get(i), bottom_vecs.get(i));
+                    backward_time_per_layer[i] += timer.MicroSeconds();
+                }
+                backward_time += backward_timer.MicroSeconds();
+                logger.info("Iteration: " + (j + 1) + " forward-backward time: "
+                        + iter_timer.MilliSeconds() + " ms.");
+            }
+            logger.info("Average time per layer: ");
+            for (int i = 0; i < layers.size(); ++i) {
+                String layername = layers.get(i).layer_param().name().getString();
+                logger.info(layername + "\tforward: "
+                        + String.format("%10g ms.", forward_time_per_layer[i] / 1000 / iterations));
+                logger.info(layername + "\tbackward: "
+                        + String.format("%10g ms.", backward_time_per_layer[i] / 1000 / iterations));
+            }
+            total_timer.Stop();
+            logger.info("Average Forward pass: " + forward_time / 1000 / iterations + " ms.");
+            logger.info("Average Backward pass: " + backward_time / 1000 / iterations + " ms.");
+            logger.info("Average Forward-Backward: " + total_timer.MilliSeconds() / iterations + " ms.");
+            logger.info("Total Time: " + total_timer.MilliSeconds() + " ms.");
+            logger.info("*** Benchmark ends ***");
+            return 0;
         });
 
     }
 
-//    static {
-//        try {
-//            System.load("/home/john/javacpp-presets/opencv/target/classes/org/bytedeco/javacpp/linux-x86_64/libjniopencv_core.so");
-//            System.load();
-//            System.load();
-//        }
-//    }
-
     public static void main(String[] args) {
         // Print output to stderr (while still logging).
         logger.setLevel(Level.ALL);
+
         // Usage message.
         SetUsageMessage("command line brew\n"
                 + "usage: test.caffe <command> <args>\n\n"
@@ -394,9 +379,9 @@ public class caffe {
                 + "  test            score a model\n"
                 + "  device_query    show GPU diagnostic information\n"
                 + "  time            benchmark model execution time");
+
         // Run tool or show usage.
         flags.init(args);
-        //GlobalInit(args);
         if (args.length > 0) {
             System.exit(GetBrewFunction(args[0]).command());
         } else {

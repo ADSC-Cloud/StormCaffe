@@ -23,6 +23,7 @@ public class DistributedCaffeTest {
         }
 
         Config config = new Config();
+//        config.registerMetricsConsumer(org.apache.storm.metric.LoggingMetricsConsumer.class, 1);
         config.setNumWorkers(4);
         config.setDebug(true);
 

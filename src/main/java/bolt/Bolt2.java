@@ -11,22 +11,21 @@ import org.apache.storm.tuple.Values;
 import utils.ExtractResources;
 import utils.GetRunningJarPath;
 
-import java.io.IOException;
+import caffe.Caffe;
+
 import java.util.Map;
 
 public class Bolt2 extends BaseRichBolt {
 
     OutputCollector outputCollector;
 
+    Caffe.FloatNet floatNet;
+
     @Override
     public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
         this.outputCollector = outputCollector;
 
-        try {
-            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");
     }
 
     @Override

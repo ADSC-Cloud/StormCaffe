@@ -10,15 +10,13 @@ import org.apache.storm.tuple.Tuple;
 import org.apache.storm.tuple.Values;
 import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.caffe;
+import static org.bytedeco.javacpp.caffe.TEST;
 import utils.ExtractResources;
 import utils.GetRunningJarPath;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
-
-import static org.bytedeco.javacpp.caffe.TEST;
 
 public class Bolt1 extends BaseRichBolt {
 
@@ -40,11 +38,7 @@ public class Bolt1 extends BaseRichBolt {
         System.out.println("Start preparing bolt!");
 
         // extract resources in local machines
-        try {
-            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");
 
         // initialize Caffe configurations
         gpu = 0;
@@ -77,8 +71,8 @@ public class Bolt1 extends BaseRichBolt {
         String appendedWord = tuple.getString(0) + "&&&";
 
         bottom_vec = new caffe.FloatBlobVector();
-        test_score_output_id = new ArrayList<Integer>();
-        test_score = new ArrayList<Float>();
+        test_score_output_id = new ArrayList<>();
+        test_score = new ArrayList<>();
 
         float loss = 0;
         for (int i = 0; i < iterations; i++) {

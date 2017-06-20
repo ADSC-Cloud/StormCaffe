@@ -1,7 +1,5 @@
 package utils;
 
-import caffe.CaffeForward;
-
 import java.net.URISyntaxException;
 
 /**
