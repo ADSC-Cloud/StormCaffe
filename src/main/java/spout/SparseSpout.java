@@ -18,7 +18,7 @@ import java.util.UUID;
 import static org.bytedeco.javacpp.opencv_videoio.CAP_PROP_POS_FRAMES;
 import static org.bytedeco.javacpp.opencv_videoio.CV_CAP_PROP_FRAME_COUNT;
 
-public class Spout extends BaseRichSpout implements IRichSpout {
+public class SparseSpout extends BaseRichSpout implements IRichSpout {
 
     private SpoutOutputCollector spoutOutputCollector;
     private String[] words = {"Hortonworks", "MapR", "Cloudera", "Hadoop", "Kafka", "Spark"};
@@ -106,6 +106,6 @@ public class Spout extends BaseRichSpout implements IRichSpout {
 
     @Override
     public void close() {
-
+        videoCapture.close();
     }
 }

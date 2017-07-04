@@ -67,11 +67,28 @@
     </build>
 
     <dependencies>
+
+        <!--import Apache Storm-->
         <dependency>
             <groupId>org.apache.storm</groupId>
             <artifactId>storm-core</artifactId>
             <version>1.0.3</version>
-            <scope>provided</scope>
+            <scope>compile</scope>
+        </dependency>
+
+        <!--import storm-redis-->
+        <dependency>
+            <groupId>org.apache.storm</groupId>
+            <artifactId>storm-redis</artifactId>
+            <version>1.0.3</version>
+            <type>jar</type>
+        </dependency>
+
+        <!--import Kryo for serialization/deserialization-->
+        <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>4.0.0</version>
         </dependency>
 
         <!--import javacpp-->

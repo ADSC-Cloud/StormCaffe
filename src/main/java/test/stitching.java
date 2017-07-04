@@ -12,6 +12,7 @@ public class stitching {
     static String result_name = "result.jpg";
 
     public static void main(String[] args) {
+
         int retval = parseCmdArgs(args);
         if (retval != 0) {
             System.exit(-1);

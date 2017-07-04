@@ -1,6 +1,6 @@
-import bolt.Bolt1;
-import bolt.Bolt2;
-import bolt.Bolt3;
+import bolt.SparseBolt1;
+import bolt.SparseBolt2;
+import bolt.SparseBolt3;
 
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
@@ -29,9 +29,9 @@ public class DistributedCaffeTest {
 
         TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("spout", new Spout(), 1);
-        builder.setBolt("bolt1", new Bolt1(), 1).shuffleGrouping("spout");
-        builder.setBolt("bolt2", new Bolt2(), 1).shuffleGrouping("spout");
-        builder.setBolt("bolt3", new Bolt3(), 1).shuffleGrouping("bolt1").shuffleGrouping("bolt2");
+        builder.setBolt("bolt1", new SparseBolt1(), 1).shuffleGrouping("spout");
+        builder.setBolt("bolt2", new SparseBolt2(), 1).shuffleGrouping("spout");
+        builder.setBolt("bolt3", new SparseBolt3(), 1).shuffleGrouping("bolt1").shuffleGrouping("bolt2");
 
         if (whereFlag.equals("local")) { // Run in local model
 
@@ -42,9 +42,13 @@ public class DistributedCaffeTest {
 //            localCluster.killTopology(TOPOLOGY_NAME);
 //            localCluster.shutdown();
         }
-        else {
+        else  if (whereFlag.equals("cluster")) {
             System.out.println("Running in cluster mode!");
             StormSubmitter.submitTopology(TOPOLOGY_NAME, config, builder.createTopology());
+        }
+        else {
+            System.out.println("Incorrect parameter for running mode (local/cluster), exiting");
+            System.exit(-1);
         }
     }
 }

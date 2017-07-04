@@ -10,7 +10,7 @@ import org.apache.storm.tuple.Values;
 
 import java.util.Map;
 
-public class Bolt3 extends BaseRichBolt {
+public class DenseBolt3 extends BaseRichBolt {
 
     OutputCollector outputCollector;
 
@@ -24,7 +24,7 @@ public class Bolt3 extends BaseRichBolt {
 
         String appendedWord = tuple.getString(0) + "???";
 
-        outputCollector.emit(tuple, new Values(appendedWord));
+//        outputCollector.emit(tuple, new Values(appendedWord));
 
 //        CaffeForward.caffeTest();
 
