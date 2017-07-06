@@ -34,59 +34,60 @@ public class Spout extends BaseRichSpout implements IRichSpout {
     public void open(Map map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
         this.spoutOutputCollector = spoutOutputCollector;
         this.rand = new Random();
-        this.videoCapture = new VideoCapture("/home/john/idea/stormCaffe/pyrlk.avi");
-        if (!videoCapture.isOpened()) {
-            System.out.println("Failed to open video!");
-            System.exit(-1);
-        }
-        else {
-            System.out.println("Succeeded to open video!");
-        }
-        totalFrameNumber = (long)(videoCapture.get(CV_CAP_PROP_FRAME_COUNT));
-        System.out.println("Total number of frames: " + totalFrameNumber);
+//        this.videoCapture = new VideoCapture("/home/john/idea/stormCaffe/pyrlk.avi");
+//        if (!videoCapture.isOpened()) {
+//            System.out.println("Failed to open video!");
+//            System.exit(-1);
+//        }
+//        else {
+//            System.out.println("Succeeded to open video!");
+//        }
+//        totalFrameNumber = (long)(videoCapture.get(CV_CAP_PROP_FRAME_COUNT));
+//        System.out.println("Total number of frames: " + totalFrameNumber);
     }
 
     @Override
     public void nextTuple() {
         String word = words[rand.nextInt(words.length)];
 
-        // take two consecutive frames from the video
-        Mat prevs_Mat = new Mat();
-        Mat next_Mat = new Mat();
-
-        // read two consecutive frames from the video
-        err = videoCapture.read(prevs_Mat);
-        if (!err) {
-            System.out.println("Failed to read the prevs_frame, exiting!");
-            System.exit(-1);
-        }
-        else {
-            prevsMatID = currentFramePos - 1;
-
-            err = videoCapture.read(next_Mat);
-            if (!err) {
-                System.out.println("Failed to read the next_frame, exiting!");
-                System.exit(-1);
-            }
-            else {
-                nextMatID = currentFramePos;
-//                currentFramePos++;
-
-                if ((currentFramePos + 1) == totalFrameNumber) {
-                    videoCapture.set(CAP_PROP_POS_FRAMES, 0);
-                    currentFramePos = 1;
-                }
-                else {
-                    videoCapture.set(CAP_PROP_POS_FRAMES, currentFramePos);
-                    currentFramePos++;
-                }
-            }
-        }
-        SerializableMat prevs_sMat = new SerializableMat(prevs_Mat);
-        SerializableMat next_sMat = new SerializableMat(next_Mat);
+//        // take two consecutive frames from the video
+//        Mat prevs_Mat = new Mat();
+//        Mat next_Mat = new Mat();
+//
+//        // read two consecutive frames from the video
+//        err = videoCapture.read(prevs_Mat);
+//        if (!err) {
+//            System.out.println("Failed to read the prevs_frame, exiting!");
+//            System.exit(-1);
+//        }
+//        else {
+//            prevsMatID = currentFramePos - 1;
+//
+//            err = videoCapture.read(next_Mat);
+//            if (!err) {
+//                System.out.println("Failed to read the next_frame, exiting!");
+//                System.exit(-1);
+//            }
+//            else {
+//                nextMatID = currentFramePos;
+////                currentFramePos++;
+//
+//                if ((currentFramePos + 1) == totalFrameNumber) {
+//                    videoCapture.set(CAP_PROP_POS_FRAMES, 0);
+//                    currentFramePos = 1;
+//                }
+//                else {
+//                    videoCapture.set(CAP_PROP_POS_FRAMES, currentFramePos);
+//                    currentFramePos++;
+//                }
+//            }
+//        }
+//        SerializableMat prevs_sMat = new SerializableMat(prevs_Mat);
+//        SerializableMat next_sMat = new SerializableMat(next_Mat);
 
         String msgId = UUID.randomUUID().toString();
-        spoutOutputCollector.emit(new Values(word, prevsMatID, prevs_sMat, nextMatID, next_sMat, currentFramePos), msgId);
+        spoutOutputCollector.emit(new Values(word), msgId);
+//        spoutOutputCollector.emit(new Values(word, prevsMatID, prevs_sMat, nextMatID, next_sMat, currentFramePos), msgId);
     }
 
     @Override
@@ -101,7 +102,7 @@ public class Spout extends BaseRichSpout implements IRichSpout {
 
     @Override
     public void declareOutputFields(OutputFieldsDeclarer outputFieldsDeclarer) {
-        outputFieldsDeclarer.declare(new Fields("OriginalWord", "PrevsFrameID", "PrevsFrame", "NextFrameID", "NextFrame", "ActualFramePos"));
+        outputFieldsDeclarer.declare(new Fields("OriginalWord"));
     }
 
     @Override

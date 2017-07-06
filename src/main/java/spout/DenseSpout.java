@@ -1,5 +1,6 @@
 package spout;
 
+import config.StormConfig;
 import org.apache.storm.spout.SpoutOutputCollector;
 import org.apache.storm.task.TopologyContext;
 import org.apache.storm.topology.IRichSpout;
@@ -9,8 +10,12 @@ import org.apache.storm.tuple.Fields;
 import org.apache.storm.tuple.Values;
 import org.bytedeco.javacpp.opencv_core.*;
 import org.bytedeco.javacpp.opencv_videoio.*;
+import org.bytedeco.javacpp.presets.opencv_core;
+import utils.ExtractResources;
+import utils.GetRunningJarPath;
 import utils.SerializableMat;
 
+import java.io.File;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
@@ -29,12 +34,26 @@ public class DenseSpout extends BaseRichSpout implements IRichSpout {
     private static long currentFramePos = 1;
     private static long prevsMatID = 0;
     private static long nextMatID = 0;
+    private String mode;
+    private String frameFilePath;
+    private String videoFilePath;
 
     @Override
     public void open(Map map, TopologyContext topologyContext, SpoutOutputCollector spoutOutputCollector) {
+
+        mode = map.get("mode").toString();
+        frameFilePath = map.get("frameFilePath").toString();
+        videoFilePath = map.get("videoFilePath").toString();
+
+        // extract resources in cluster mode
+        if (mode.equals("cluster")) {
+            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");
+            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "opticalflow");
+        }
+
         this.spoutOutputCollector = spoutOutputCollector;
         this.rand = new Random();
-        this.videoCapture = new VideoCapture("/home/john/idea/stormCaffe/dense.avi");
+        this.videoCapture = new VideoCapture(videoFilePath);
         if (!videoCapture.isOpened()) {
             System.out.println("Failed to open video!");
             System.exit(-1);

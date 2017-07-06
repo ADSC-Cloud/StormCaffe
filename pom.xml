@@ -8,16 +8,11 @@
     <artifactId>stormCaffe</artifactId>
     <version>1.0-SNAPSHOT</version>
 
-    <properties>
-        <exec.mainClass>DistributedCaffeTest</exec.mainClass>
-    </properties>
+    <!--<properties>-->
+        <!--<exec.mainClass>DistributedCaffeTest</exec.mainClass>-->
+    <!--</properties>-->
 
     <build>
-        <!--<resources>-->
-            <!--<resource>-->
-                <!--<directory>src/my-resources</directory>-->
-            <!--</resource>-->
-        <!--</resources>-->
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

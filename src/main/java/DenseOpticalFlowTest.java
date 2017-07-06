@@ -1,4 +1,5 @@
 import bolt.*;
+import config.StormConfig;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
@@ -19,57 +20,66 @@ import static org.bytedeco.javacpp.opencv_videoio.CV_CAP_PROP_FRAME_COUNT;
  */
 public class DenseOpticalFlowTest {
     public static void main(String[] args) throws Exception {
-        String frameFilePath = "/home/john/idea-data/DenseOpticalFlowTest/";
-        String videoFilePath = "/home/john/idea/stormCaffe/dense.avi";
-        VideoCapture videoCapture = new VideoCapture(videoFilePath);
-        if (!videoCapture.isOpened()) {
-            System.out.println("Failed to open video!");
-            System.exit(-1);
-        }
-        else {
-            System.out.println("Succeeded to open video!");
-        }
-        long totalFrameNumber = (long)(videoCapture.get(CV_CAP_PROP_FRAME_COUNT));
-        System.out.println("Total number of frames: " + totalFrameNumber);
-        videoCapture.close();
-
-        // delete all existing files in ./data folder
-        FileUtils.deleteDirectory(new File("/home/john/idea-data/DenseOpticalFlowTest/"));
-        FileUtils.forceMkdir(new File("/home/john/idea-data/DenseOpticalFlowTest/"));
 
         final String TOPOLOGY_NAME = "DenseOpticalFlowTest";
-        String whereFlag = "local";
+        String frameFilePath = null;
+        String videoFilePath = null;
+        long totalFrameNumber = 0;
 
-        if (args.length == 1)
-            whereFlag = args[0];
+        if (args.length == 1) {
+            if (args[0].equals("local")) {
+                frameFilePath = "/home/john/idea-data/opticalflow/DenseOpticalFlowTest/";
+                videoFilePath = "/home/john/idea-data/opticalflow/dense.avi";
+
+                // delete all existing files in ./data folder
+                FileUtils.deleteDirectory(new File(frameFilePath));
+                FileUtils.forceMkdir(new File(frameFilePath));
+
+                VideoCapture videoCapture = new VideoCapture(videoFilePath);
+                if (!videoCapture.isOpened()) {
+                    System.out.println("Failed to open video!");
+                    System.exit(-1);
+                }
+                else {
+                    System.out.println("Succeeded to open video!");
+                }
+                totalFrameNumber = (long)(videoCapture.get(CV_CAP_PROP_FRAME_COUNT));
+                System.out.println("Total number of frames: " + totalFrameNumber);
+                videoCapture.close();
+            }
+            else if (args[0].equals("cluster")) {
+                frameFilePath = StormConfig.LOCAL_DATA_DIR + "/opticalflow/DenseOpticalFlowTest/";
+                videoFilePath = StormConfig.LOCAL_DATA_DIR + "/opticalflow/dense.avi";
+            }
+            else {
+                System.out.println("Incorrect mode argument. You should declare mode of running topology (local/cluster).");
+                System.exit(-1);
+            }
+        }
         else {
-            System.out.println("Incorrect mode argument. You should declare mode of running topology (local/cluster).");
+            System.out.println("Incorrect number of mode arguments.");
             System.exit(-1);
         }
 
         Config config = new Config();
         config.registerSerialization(SerializableMat.class);
-//        config.registerMetricsConsumer(org.apache.storm.metric.LoggingMetricsConsumer.class, 1);
         config.setNumWorkers(4);
-        config.setDebug(false);
+        config.setDebug(true);
         config.setMessageTimeoutSecs(100);
         config.setMaxSpoutPending(100);
 
-//        // storm-redis setting
-//        String host = "127.0.0.1";
-//        int port = 6379;
-//        JedisPoolConfig poolConfig = new JedisPoolConfig.Builder().setHost(host).setPort(port).build();
-//        RedisStoreMapper storeMapper = new FrameStoreMapper();
-//        RedisStoreBolt storeBolt = new RedisStoreBolt(poolConfig, storeMapper);
+        // custom arguments
+        config.put("mode", args[0]);
+        config.put("frameFilePath", frameFilePath);
+        config.put("videoFilePath", videoFilePath);
 
         TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("spout", new DenseSpout(), 1);
         builder.setBolt("bolt1", new DenseBolt1(), 1).shuffleGrouping("spout");
         builder.setBolt("bolt2", new DenseBolt2(), 4).shuffleGrouping("spout");
         builder.setBolt("bolt3", new DenseBolt3(), 1).shuffleGrouping("bolt1").shuffleGrouping("bolt2");
-//        builder.setBolt("bolt4", storeBolt, 1).shuffleGrouping("bolt2");
 
-        if (whereFlag.equals("local")) { // Run in local model
+        if (args[0].equals("local")) { // Run in local model
             Thread displayFrameThread = new Thread(new FrameDisplay(frameFilePath, totalFrameNumber));
             displayFrameThread.start();
 

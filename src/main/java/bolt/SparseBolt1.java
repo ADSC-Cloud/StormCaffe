@@ -31,35 +31,46 @@ public class SparseBolt1 extends BaseRichBolt {
     private ArrayList<Integer> test_score_output_id;
     private ArrayList<Float> test_score;
 
+    private String mode;
+    private String frameFilePath;
+    private String videoFilePath;
+
     @Override
     public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
-        this.outputCollector = outputCollector;
 
-        System.out.println("Start preparing bolt!");
+        mode = map.get("mode").toString();
+        frameFilePath = map.get("frameFilePath").toString();
+        videoFilePath = map.get("videoFilePath").toString();
 
-        // extract resources in local machines
-        ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");
-
-        // initialize Caffe configurations
-        gpu = 0;
-        modelPath = StormConfig.LOCAL_DATA_DIR + File.separator + "examples/mnist/lenet_train_test.prototxt";
-        weightsPath = StormConfig.LOCAL_DATA_DIR + File.separator + "examples/mnist/lenet_iter_10000.caffemodel";
-        iterations = 1;
-
-        // Set device id and mode
-        if (gpu >= 0) {
-            System.out.println("Use GPU with device ID " + gpu);
-            caffe.Caffe.SetDevice(gpu);
-            caffe.Caffe.set_mode(caffe.Caffe.GPU);
-        } else {
-            System.out.println("Use CPU.");
-            caffe.Caffe.set_mode(caffe.Caffe.CPU);
+        // extract resources in cluster mode
+        if (mode.equals("cluster")) {
+            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");
+            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "opticalflow");
         }
 
-        // Instantiate the test.caffe net
-        caffe_net = new caffe.FloatNet(modelPath, TEST);
-        caffe_net.CopyTrainedLayersFrom(weightsPath);
-        System.out.println("Running for " + iterations + " iterations.");
+        this.outputCollector = outputCollector;
+        System.out.println("Start preparing bolt!");
+
+//        // initialize Caffe configurations
+//        gpu = 0;
+//        modelPath = StormConfig.LOCAL_DATA_DIR + File.separator + "examples/mnist/lenet_train_test.prototxt";
+//        weightsPath = StormConfig.LOCAL_DATA_DIR + File.separator + "examples/mnist/lenet_iter_10000.caffemodel";
+//        iterations = 1;
+//
+//        // Set device id and mode
+//        if (gpu >= 0) {
+//            System.out.println("Use GPU with device ID " + gpu);
+//            caffe.Caffe.SetDevice(gpu);
+//            caffe.Caffe.set_mode(caffe.Caffe.GPU);
+//        } else {
+//            System.out.println("Use CPU.");
+//            caffe.Caffe.set_mode(caffe.Caffe.CPU);
+//        }
+//
+//        // Instantiate the test.caffe net
+//        caffe_net = new caffe.FloatNet(modelPath, TEST);
+//        caffe_net.CopyTrainedLayersFrom(weightsPath);
+//        System.out.println("Running for " + iterations + " iterations.");
 
         System.out.println("Finish preparing bolt!");
     }

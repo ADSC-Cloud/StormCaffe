@@ -236,8 +236,8 @@ public class caffe {
             logger.info("Running for " + iterations + " iterations.");
 
             FloatBlobVector bottom_vec = new FloatBlobVector();
-            ArrayList<Integer> test_score_output_id = new ArrayList<Integer>();
-            ArrayList<Float> test_score = new ArrayList<Float>();
+            ArrayList<Integer> test_score_output_id = new ArrayList<>();
+            ArrayList<Float> test_score = new ArrayList<>();
             float loss = 0;
             for (int i = 0; i < iterations; i++) {
                 float[] iter_loss = new float[1];
@@ -263,17 +263,16 @@ public class caffe {
             loss /= iterations;
             logger.info("Loss: " + loss);
             for (int i = 0; i < test_score.size(); i++) {
-                String output_name = caffe_net.blob_names().get(
-                        caffe_net.output_blob_indices().get(test_score_output_id.get(i))).getString();
-                float loss_weight =
-                        caffe_net.blob_loss_weights().get(caffe_net.output_blob_indices().get(i));
-                String loss_msg_stream = "";
-                float mean_score = test_score.get(i) / iterations;
-                if (loss_weight != 0) {
-                    loss_msg_stream = " (* " + loss_weight
-                            + " = " + (loss_weight * mean_score) + " loss)";
-                }
-                logger.info(output_name + " = " + mean_score + loss_msg_stream);
+//                String output_name = caffe_net.blob_names().get(caffe_net.output_blob_indices().get(test_score_output_id.get(i))).getString();
+//                System.out.println("Output name: " + output_name);
+//                float loss_weight = caffe_net.blob_loss_weights().get(caffe_net.output_blob_indices().get(i));
+//                String loss_msg_stream = "";
+//                float mean_score = test_score.get(i) / iterations;
+//                if (loss_weight != 0) {
+//                    loss_msg_stream = " (* " + loss_weight + " = " + (loss_weight * mean_score) + " loss)";
+//                }
+//                logger.info(output_name + " = " + mean_score + loss_msg_stream);
+                System.out.println("Score: " + test_score.get(i));
             }
             return 0;
         });

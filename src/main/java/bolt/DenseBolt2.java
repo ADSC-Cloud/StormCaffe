@@ -18,6 +18,7 @@ import caffe.CaffeClass;
 import utils.OpticalFlow;
 import utils.SerializableMat;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -34,11 +35,25 @@ public class DenseBolt2 extends BaseRichBolt {
     private String fileName;
     private Kryo kryo;
 
+    private String mode;
+    private String frameFilePath;
+    private String videoFilePath;
+
     @Override
     public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
+
+        mode = map.get("mode").toString();
+        frameFilePath = map.get("frameFilePath").toString();
+        videoFilePath = map.get("videoFilePath").toString();
+
+        // extract resources in cluster mode
+        if (mode.equals("cluster")) {
+            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");
+            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "opticalflow");
+        }
+
         this.outputCollector = outputCollector;
         kryo = new Kryo();
-        ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");
     }
 
     @Override
@@ -67,7 +82,7 @@ public class DenseBolt2 extends BaseRichBolt {
         // output the optical-flow-added Mat
         FileOutputStream fos = null;
         try {
-            fos = new FileOutputStream("/home/john/idea-data/DenseOpticalFlowTest/" + fileName + ".bin");
+            fos = new FileOutputStream(frameFilePath + fileName + ".bin");
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

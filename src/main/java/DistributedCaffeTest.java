@@ -1,6 +1,4 @@
-import bolt.SparseBolt1;
-import bolt.SparseBolt2;
-import bolt.SparseBolt3;
+import bolt.*;
 
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
@@ -23,15 +21,14 @@ public class DistributedCaffeTest {
         }
 
         Config config = new Config();
-//        config.registerMetricsConsumer(org.apache.storm.metric.LoggingMetricsConsumer.class, 1);
-        config.setNumWorkers(4);
+        config.setNumWorkers(6);
         config.setDebug(true);
 
         TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("spout", new Spout(), 1);
-        builder.setBolt("bolt1", new SparseBolt1(), 1).shuffleGrouping("spout");
-        builder.setBolt("bolt2", new SparseBolt2(), 1).shuffleGrouping("spout");
-        builder.setBolt("bolt3", new SparseBolt3(), 1).shuffleGrouping("bolt1").shuffleGrouping("bolt2");
+        builder.setBolt("bolt1", new Bolt1(), 1).shuffleGrouping("spout");
+        builder.setBolt("bolt2", new Bolt2(), 4).shuffleGrouping("spout");
+        builder.setBolt("bolt3", new Bolt3(), 1).shuffleGrouping("bolt1").shuffleGrouping("bolt2");
 
         if (whereFlag.equals("local")) { // Run in local model
 

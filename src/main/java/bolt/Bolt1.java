@@ -18,7 +18,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class DenseBolt1 extends BaseRichBolt {
+public class Bolt1 extends BaseRichBolt {
 
     private OutputCollector outputCollector;
 
@@ -38,10 +38,10 @@ public class DenseBolt1 extends BaseRichBolt {
     @Override
     public void prepare(Map map, TopologyContext topologyContext, OutputCollector outputCollector) {
 
-        mode = map.get("mode").toString();
-        frameFilePath = map.get("frameFilePath").toString();
-        videoFilePath = map.get("videoFilePath").toString();
-
+//        mode = map.get("mode").toString();
+//        frameFilePath = map.get("frameFilePath").toString();
+//        videoFilePath = map.get("videoFilePath").toString();
+//
         // extract resources in cluster mode
         if (mode.equals("cluster")) {
             ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");

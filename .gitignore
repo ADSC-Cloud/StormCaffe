@@ -85,3 +85,5 @@ examples/
 src/main/resources/
 src/test/
 stormCaffe.iml
+/logs/
+/zookeeper.out

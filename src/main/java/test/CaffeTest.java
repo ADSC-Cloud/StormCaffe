@@ -26,8 +26,9 @@ public class CaffeTest {
     private void caffeTest() {
 
         gpu = new Integer("0");
-        modelPath = "examples/mnist/lenet_train_test.prototxt";
-        weightsPath = "examples/mnist/lenet_iter_10000.caffemodel";
+//        modelPath = "/home/john/idea/stormCaffe/examples/mnist/lenet_train_test.prototxt";
+        modelPath = "/home/john/idea/stormCaffe/examples/mnist/lenet.prototxt";
+        weightsPath = "/home/john/idea/stormCaffe/examples/mnist/lenet_iter_10000.caffemodel";
         iterations = new Integer("100");
 
         // Set device id and mode
@@ -49,8 +50,8 @@ public class CaffeTest {
         // simulate looping of execute method in Storm
         while(true) {
             bottom_vec = new FloatBlobVector();
-            test_score = new ArrayList<Float>();
-            test_score_output_id = new ArrayList<Integer>();
+            test_score = new ArrayList<>();
+            test_score_output_id = new ArrayList<>();
 
             float loss = 0;
             for (int i = 0; i < iterations; i++) {
@@ -68,8 +69,7 @@ public class CaffeTest {
                         } else {
                             test_score.set(idx, test_score.get(idx) + score);
                         }
-                        String output_name = caffe_net.blob_names().get(
-                                caffe_net.output_blob_indices().get(j)).getString();
+                        String output_name = caffe_net.blob_names().get(caffe_net.output_blob_indices().get(j)).getString();
                         System.out.println("Batch " + i + ", " + output_name + " = " + score);
                     }
                 }
@@ -78,18 +78,20 @@ public class CaffeTest {
             System.out.println("Loss: " + loss);
 
             for (int i = 0; i < test_score.size(); i++) {
-                String output_name = caffe_net.blob_names().get(
-                        caffe_net.output_blob_indices().get(test_score_output_id.get(i))).getString();
-                float loss_weight =
-                        caffe_net.blob_loss_weights().get(caffe_net.output_blob_indices().get(i));
-                String loss_msg_stream = "";
-                float mean_score = test_score.get(i) / iterations;
-                if (loss_weight != 0) {
-                    loss_msg_stream = " (* " + loss_weight
-                            + " = " + (loss_weight * mean_score) + " loss)";
-                }
-                System.out.println(output_name + " = " + mean_score + loss_msg_stream);
+//                String output_name = caffe_net.blob_names().get(caffe_net.output_blob_indices().get(test_score_output_id.get(i))).getString();
+//                float loss_weight = caffe_net.blob_loss_weights().get(caffe_net.output_blob_indices().get(i));
+//                String loss_msg_stream = "";
+//                float mean_score = test_score.get(i) / iterations;
+//                if (loss_weight != 0) {
+//                    loss_msg_stream = " (* " + loss_weight + " = " + (loss_weight * mean_score) + " loss)";
+//                }
+//                System.out.println(output_name + " = " + mean_score + loss_msg_stream);
+                System.out.println("Test score: " + test_score.get(i));
             }
+
+            bottom_vec.close();
+            test_score.clear();
+            test_score_output_id.clear();
         }
     }
 
