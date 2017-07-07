@@ -1,11 +1,12 @@
-import bolt.*;
+import bolt.cv.DenseBolt1;
+import bolt.cv.DenseBolt2;
+import bolt.cv.DenseBolt3;
 import config.StormConfig;
 import org.apache.storm.Config;
 import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.shade.org.apache.commons.io.FileUtils;
 import org.apache.storm.topology.TopologyBuilder;
-import org.apache.storm.utils.Time;
 import org.bytedeco.javacpp.opencv_videoio.*;
 import spout.DenseSpout;
 import utils.FrameDisplay;
@@ -76,7 +77,7 @@ public class DenseOpticalFlowTest {
         TopologyBuilder builder = new TopologyBuilder();
         builder.setSpout("spout", new DenseSpout(), 1);
         builder.setBolt("bolt1", new DenseBolt1(), 1).shuffleGrouping("spout");
-        builder.setBolt("bolt2", new DenseBolt2(), 4).shuffleGrouping("spout");
+        builder.setBolt("bolt2", new DenseBolt2(), 1).shuffleGrouping("spout");
         builder.setBolt("bolt3", new DenseBolt3(), 1).shuffleGrouping("bolt1").shuffleGrouping("bolt2");
 
         if (args[0].equals("local")) { // Run in local model

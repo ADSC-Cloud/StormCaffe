@@ -8,12 +8,12 @@ import java.util.logging.Logger;
 import org.bytedeco.javacpp.FloatPointer;
 import static org.bytedeco.javacpp.caffe.*;
 
-public class caffe {
-    static final Logger logger = Logger.getLogger(caffe.class.getSimpleName());
+public class caffeJavaCPP {
+    static final Logger logger = Logger.getLogger(caffeJavaCPP.class.getSimpleName());
 
     private static String usageMessage;
     private static void SetUsageMessage(String usageMessage) {
-        caffe.usageMessage = usageMessage;
+        caffeJavaCPP.usageMessage = usageMessage;
     }
 
     static abstract class Flag {
@@ -95,8 +95,8 @@ public class caffe {
     static final Flags flags = new Flags();
 
     private static void ShowUsageWithFlags() {
-        System.out.println(caffe.class.getSimpleName() + " " + usageMessage + "\n");
-        System.out.println("Flags from " + caffe.class.getSimpleName() + ":");
+        System.out.println(caffeJavaCPP.class.getSimpleName() + " " + usageMessage + "\n");
+        System.out.println("Flags from " + caffeJavaCPP.class.getSimpleName() + ":");
         for (Map.Entry<String,Flag> e : flags.entrySet()) {
             Flag f = e.getValue();
             System.out.println("    -" + e.getKey() + " (" + f.desc + ") type: "
@@ -104,7 +104,7 @@ public class caffe {
         }
     }
 
-    // A simple registry for test.caffe commands.
+    // A simple registry for test.caffeJavaCPP commands.
     interface BrewFunction {
         int command();
     }
@@ -118,7 +118,7 @@ public class caffe {
         if (brewMap.containsKey(name)) {
             return brewMap.get(name);
         } else {
-            String msg = "Available test.caffe actions:";
+            String msg = "Available test.caffeJavaCPP actions:";
             for (String s : brewMap.keySet()) {
                 msg += "\t" + s;
             }
@@ -140,8 +140,8 @@ public class caffe {
     }
 
     static {
-        // test.caffe commands to call by
-        //     test.caffe <command> <args>
+        // test.caffeJavaCPP commands to call by
+        //     test.caffeJavaCPP <command> <args>
         //
         // To add a command, define a function "int command()" and register it with
         // RegisterBrewFunction(name, func);
@@ -230,7 +230,7 @@ public class caffe {
                 logger.info("Use CPU.");
                 Caffe.set_mode(Caffe.CPU);
             }
-            // Instantiate the test.caffe net.
+            // Instantiate the test.caffeJavaCPP net.
             FloatNet caffe_net = new FloatNet(model, TEST);
             caffe_net.CopyTrainedLayersFrom(weights);
             logger.info("Running for " + iterations + " iterations.");
@@ -295,7 +295,7 @@ public class caffe {
                 logger.info("Use CPU.");
                 Caffe.set_mode(Caffe.CPU);
             }
-            // Instantiate the test.caffe net.
+            // Instantiate the test.caffeJavaCPP net.
             FloatNet caffe_net = new FloatNet(model, TRAIN);
 
             // Do a clean forward and backward pass, so that memory allocation are done
@@ -372,7 +372,7 @@ public class caffe {
 
         // Usage message.
         SetUsageMessage("command line brew\n"
-                + "usage: test.caffe <command> <args>\n\n"
+                + "usage: test.caffeJavaCPP <command> <args>\n\n"
                 + "commands:\n"
                 + "  train           train or finetune a model\n"
                 + "  test            score a model\n"

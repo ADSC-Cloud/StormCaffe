@@ -1,10 +1,11 @@
-package bolt;
+package bolt.cv;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
 import config.StormConfig;
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
+import org.apache.storm.topology.IRichBolt;
 import org.apache.storm.topology.OutputFieldsDeclarer;
 import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Fields;
@@ -26,9 +27,8 @@ import java.util.Map;
 
 import static org.bytedeco.javacpp.opencv_highgui.imshow;
 import static org.bytedeco.javacpp.opencv_highgui.waitKey;
-import static org.bytedeco.javacpp.opencv_imgcodecs.imwrite;
 
-public class DenseBolt2 extends BaseRichBolt {
+public class SparseBolt2 extends BaseRichBolt implements IRichBolt {
 
     private OutputCollector outputCollector;
     private CaffeClass.FloatNet floatNet;
@@ -76,7 +76,7 @@ public class DenseBolt2 extends BaseRichBolt {
         Mat prevs_mat = prevs_sMat.toJavaCVMat();
         Mat next_mat = next_sMat.toJavaCVMat();
         Mat output_Mat = new Mat();
-        OpticalFlow.calcDenseOpticalFlow(prevs_mat, next_mat, output_Mat);
+        OpticalFlow.calcSparseOpticalFlow(prevs_mat, next_mat, output_Mat, true);
         SerializableMat output_sMat = new SerializableMat(output_Mat);
 
         // output the optical-flow-added Mat
@@ -97,8 +97,9 @@ public class DenseBolt2 extends BaseRichBolt {
 
 //        imshow("frame", output_Mat);
 //        int k = waitKey(1) & 0xff;
-//        if (k == 27) // is press ESC, exit
+//        if (k==27) {
 //            System.exit(-1);
+//        }
 
         outputCollector.emit(tuple, new Values(appendedWord));
         outputCollector.ack(tuple);

@@ -1,4 +1,4 @@
-package bolt;
+package bolt.caffe;
 
 /**
  * Created by john on 21/6/17.

@@ -1,6 +1,6 @@
-import bolt.SparseBolt1;
-import bolt.SparseBolt2;
-import bolt.SparseBolt3;
+import bolt.cv.SparseBolt1;
+import bolt.cv.SparseBolt2;
+import bolt.cv.SparseBolt3;
 
 import config.StormConfig;
 import org.apache.storm.Config;
@@ -8,7 +8,6 @@ import org.apache.storm.LocalCluster;
 import org.apache.storm.StormSubmitter;
 import org.apache.storm.shade.org.apache.commons.io.FileUtils;
 import org.apache.storm.topology.TopologyBuilder;
-import org.bytedeco.javacpp.opencv_videoio;
 import spout.SparseSpout;
 import utils.FrameDisplay;
 import utils.SerializableMat;

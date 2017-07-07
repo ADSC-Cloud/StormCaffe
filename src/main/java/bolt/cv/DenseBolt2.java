@@ -1,4 +1,4 @@
-package bolt;
+package bolt.cv;
 
 import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Output;
@@ -26,8 +26,9 @@ import java.util.Map;
 
 import static org.bytedeco.javacpp.opencv_highgui.imshow;
 import static org.bytedeco.javacpp.opencv_highgui.waitKey;
+import static org.bytedeco.javacpp.opencv_imgcodecs.imwrite;
 
-public class SparseBolt2 extends BaseRichBolt {
+public class DenseBolt2 extends BaseRichBolt {
 
     private OutputCollector outputCollector;
     private CaffeClass.FloatNet floatNet;
@@ -75,7 +76,7 @@ public class SparseBolt2 extends BaseRichBolt {
         Mat prevs_mat = prevs_sMat.toJavaCVMat();
         Mat next_mat = next_sMat.toJavaCVMat();
         Mat output_Mat = new Mat();
-        OpticalFlow.calcSparseOpticalFlow(prevs_mat, next_mat, output_Mat, true);
+        OpticalFlow.calcDenseOpticalFlow(prevs_mat, next_mat, output_Mat);
         SerializableMat output_sMat = new SerializableMat(output_Mat);
 
         // output the optical-flow-added Mat
@@ -96,9 +97,8 @@ public class SparseBolt2 extends BaseRichBolt {
 
 //        imshow("frame", output_Mat);
 //        int k = waitKey(1) & 0xff;
-//        if (k==27) {
+//        if (k == 27) // is press ESC, exit
 //            System.exit(-1);
-//        }
 
         outputCollector.emit(tuple, new Values(appendedWord));
         outputCollector.ack(tuple);

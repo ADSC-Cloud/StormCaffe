@@ -1,4 +1,4 @@
-package bolt;
+package bolt.cv;
 
 import config.StormConfig;
 import org.apache.storm.task.OutputCollector;
@@ -18,7 +18,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Map;
 
-public class DenseBolt1 extends BaseRichBolt {
+public class SparseBolt1 extends BaseRichBolt {
 
     private OutputCollector outputCollector;
 
@@ -60,15 +60,15 @@ public class DenseBolt1 extends BaseRichBolt {
 //        // Set device id and mode
 //        if (gpu >= 0) {
 //            System.out.println("Use GPU with device ID " + gpu);
-//            caffe.Caffe.SetDevice(gpu);
-//            caffe.Caffe.set_mode(caffe.Caffe.GPU);
+//            caffeJavaCPP.Caffe.SetDevice(gpu);
+//            caffeJavaCPP.Caffe.set_mode(caffeJavaCPP.Caffe.GPU);
 //        } else {
 //            System.out.println("Use CPU.");
-//            caffe.Caffe.set_mode(caffe.Caffe.CPU);
+//            caffeJavaCPP.Caffe.set_mode(caffeJavaCPP.Caffe.CPU);
 //        }
 //
-//        // Instantiate the test.caffe net
-//        caffe_net = new caffe.FloatNet(modelPath, TEST);
+//        // Instantiate the test.caffeJavaCPP net
+//        caffe_net = new caffeJavaCPP.FloatNet(modelPath, TEST);
 //        caffe_net.CopyTrainedLayersFrom(weightsPath);
 //        System.out.println("Running for " + iterations + " iterations.");
 
@@ -81,13 +81,13 @@ public class DenseBolt1 extends BaseRichBolt {
         // prepare and emit other information to default stream
         String appendedWord = tuple.getString(0) + "&&&";
 
-//        bottom_vec = new caffe.FloatBlobVector();
+//        bottom_vec = new caffeJavaCPP.FloatBlobVector();
 //        test_score_output_id = new ArrayList<>();
 //        test_score = new ArrayList<>();
 //        float loss = 0;
 //        for (int i = 0; i < iterations; i++) {
 //            float[] iter_loss = new float[1];
-//            caffe.FloatBlobVector result = caffe_net.Forward(bottom_vec, iter_loss);
+//            caffeJavaCPP.FloatBlobVector result = caffe_net.Forward(bottom_vec, iter_loss);
 //            loss += iter_loss[0];
 //            int idx = 0;
 //            for (int j = 0; j < result.size(); j++) {

@@ -132,7 +132,7 @@
             <classifier>linux-x86_64</classifier>
         </dependency>
 
-        <!--import test.caffe-->
+        <!--import test.caffeJavaCPP-->
         <dependency>
             <groupId>org.bytedeco.javacpp-presets</groupId>
             <artifactId>caffe</artifactId>

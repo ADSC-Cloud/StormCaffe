@@ -1,4 +1,4 @@
-package test;
+package caffe;
 
 import org.bytedeco.javacpp.FloatPointer;
 
@@ -130,7 +130,7 @@ public class CaffeClassifier {
     }
 
     public static CaffeClassifier create(String modelFile, String trainedFile,
-                                         String meanFile, String labelFile) throws IOException {
+                                         String meanFile, String labelFile) {
         // load trained model
         FloatNet net = new FloatNet(modelFile, TEST);
         net.CopyTrainedLayersFrom(trainedFile);
@@ -139,9 +139,11 @@ public class CaffeClassifier {
         Mat mean = meanImage(meanFile, net);
 
         // load class labels
-        List<String> labels;
+        List<String> labels = null;
         try (BufferedReader reader = new BufferedReader(new FileReader(labelFile))) {
             labels = reader.lines().collect(Collectors.toList());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         return new CaffeClassifier(net, mean, labels);

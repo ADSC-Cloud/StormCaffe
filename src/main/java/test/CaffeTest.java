@@ -42,7 +42,7 @@ public class CaffeTest {
         }
 
 
-        // Instantiate the test.caffe net.
+        // Instantiate the test.caffeJavaCPP net.
         caffe_net = new FloatNet(modelPath, TEST);
         caffe_net.CopyTrainedLayersFrom(weightsPath);
         System.out.println("Running for " + iterations + " iterations.");

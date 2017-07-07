@@ -1,4 +1,4 @@
-package bolt;
+package bolt.cv;
 
 import org.apache.storm.task.OutputCollector;
 import org.apache.storm.task.TopologyContext;
@@ -10,7 +10,7 @@ import org.apache.storm.tuple.Values;
 
 import java.util.Map;
 
-public class SparseBolt3 extends BaseRichBolt {
+public class DenseBolt3 extends BaseRichBolt {
 
     OutputCollector outputCollector;
 
@@ -24,7 +24,7 @@ public class SparseBolt3 extends BaseRichBolt {
 
         String appendedWord = tuple.getString(0) + "???";
 
-        outputCollector.emit(tuple, new Values(appendedWord));
+//        outputCollector.emit(tuple, new Values(appendedWord));
 
 //        CaffeForward.caffeTest();
 

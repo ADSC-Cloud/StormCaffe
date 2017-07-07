@@ -1,4 +1,4 @@
-package bolt;
+package bolt.cv;
 
 import org.apache.storm.redis.common.mapper.RedisDataTypeDescription;
 import org.apache.storm.redis.common.mapper.RedisStoreMapper;
