@@ -6,5 +6,5 @@ This work is finished by He Jiong (john.hejiong@gmail.com) at Advanced Digital S
 StormCaffe provides generic Spouts and Bolts for various situations in video analytics (such as optical flow, RGB computing and so on) so that users only need to inherit these components and define their own topologies, and leave everything else to Storm to fully utilize the computing capability of clusters.
 
 
-#Acknowledgement
+# Acknowledgement
 This work was partially supported by SingAREN/AWS Cloud Credit for Research Program 2016.
