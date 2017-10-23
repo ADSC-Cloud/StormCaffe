@@ -12,10 +12,10 @@ import org.apache.storm.topology.TopologyBuilder;
 import spout.FrameReceiverSpout;
 import utils.SerializableMat;
 
-public class ObjectDetectionTest {
+public class ObjectClassificationCluster {
     public static void main(String[] args) throws Exception {
 
-        final String TOPOLOGY_NAME = "ObjectDetectionTest";
+        final String TOPOLOGY_NAME = "ObjectClassificationCluster";
         String model = null;
         String weights = null;
         String meanValue = null;

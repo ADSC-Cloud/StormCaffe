@@ -17,6 +17,9 @@ import java.io.File;
 import static org.bytedeco.javacpp.opencv_videoio.CV_CAP_PROP_FRAME_COUNT;
 
 /**
+ * This program adopts Gunnar Farneback’s algorithm to achieve dense optical flow tracking functionality.
+ * With dense optical flow tracking, all pixels in frames will be tracked and analysed.
+ *
  * Created by john on 3/7/17.
  */
 public class DenseOpticalFlowTest {
@@ -32,7 +35,7 @@ public class DenseOpticalFlowTest {
                 frameFilePath = "/home/john/idea-data/opticalflow/DenseOpticalFlowTest/";
                 videoFilePath = "/home/john/idea-data/opticalflow/dense.avi";
 
-                // delete all existing files in ./data folder
+                // delete all existing files in frameFilePath folder
                 FileUtils.deleteDirectory(new File(frameFilePath));
                 FileUtils.forceMkdir(new File(frameFilePath));
 

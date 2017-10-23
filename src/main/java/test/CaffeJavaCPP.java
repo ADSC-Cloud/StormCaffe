@@ -1,3 +1,9 @@
+/**
+ * This is the original program to demonstrate how to use JavaCPP-Presets Caffe in Java.
+ * It provides basic functions such as model train, test, timing and device query. Arguments
+ * should be passed into main function to choose the function.
+ */
+
 package test;
 
 import java.util.ArrayList;
@@ -8,12 +14,12 @@ import java.util.logging.Logger;
 import org.bytedeco.javacpp.FloatPointer;
 import static org.bytedeco.javacpp.caffe.*;
 
-public class caffeJavaCPP {
-    static final Logger logger = Logger.getLogger(caffeJavaCPP.class.getSimpleName());
+public class CaffeJavaCPP {
+    static final Logger logger = Logger.getLogger(CaffeJavaCPP.class.getSimpleName());
 
-    private static String usageMessage;
-    private static void SetUsageMessage(String usageMessage) {
-        caffeJavaCPP.usageMessage = usageMessage;
+    static String usageMessage;
+    static void SetUsageMessage(String usageMessage) {
+        CaffeJavaCPP.usageMessage = usageMessage;
     }
 
     static abstract class Flag {
@@ -25,7 +31,7 @@ public class caffeJavaCPP {
         }
         abstract void set(String arg);
     }
-    private static class IntFlag extends Flag {
+    static class IntFlag extends Flag {
         IntFlag(int value, String desc) {
             super(value, desc);
         }
@@ -36,7 +42,7 @@ public class caffeJavaCPP {
             return ((Integer)value).toString();
         }
     }
-    private static class StringFlag extends Flag {
+    static class StringFlag extends Flag {
         StringFlag(String value, String desc) {
             super(value, desc);
         }
@@ -47,7 +53,7 @@ public class caffeJavaCPP {
             return "\"" + value + "\"";
         }
     }
-    private static class Flags extends TreeMap<String,Flag> {
+    static class Flags extends TreeMap<String,Flag> {
         Flags() {
             put("gpu", new IntFlag(-1,
                     "Run in GPU mode on given device ID."));
@@ -94,9 +100,9 @@ public class caffeJavaCPP {
     }
     static final Flags flags = new Flags();
 
-    private static void ShowUsageWithFlags() {
-        System.out.println(caffeJavaCPP.class.getSimpleName() + " " + usageMessage + "\n");
-        System.out.println("Flags from " + caffeJavaCPP.class.getSimpleName() + ":");
+    static void ShowUsageWithFlags() {
+        System.out.println(CaffeJavaCPP.class.getSimpleName() + " " + usageMessage + "\n");
+        System.out.println("Flags from " + CaffeJavaCPP.class.getSimpleName() + ":");
         for (Map.Entry<String,Flag> e : flags.entrySet()) {
             Flag f = e.getValue();
             System.out.println("    -" + e.getKey() + " (" + f.desc + ") type: "
@@ -104,21 +110,21 @@ public class caffeJavaCPP {
         }
     }
 
-    // A simple registry for test.caffeJavaCPP commands.
+    // A simple registry for CaffeJavaCPP commands.
     interface BrewFunction {
         int command();
     }
     static final TreeMap<String,BrewFunction> brewMap = new TreeMap<String,BrewFunction>();
 
-    private static void RegisterBrewFunction(String name, BrewFunction func) {
+    static void RegisterBrewFunction(String name, BrewFunction func) {
         brewMap.put(name, func);
     }
 
-    private static BrewFunction GetBrewFunction(String name) {
+    static BrewFunction GetBrewFunction(String name) {
         if (brewMap.containsKey(name)) {
             return brewMap.get(name);
         } else {
-            String msg = "Available test.caffeJavaCPP actions:";
+            String msg = "Available CaffeJavaCPP actions:";
             for (String s : brewMap.keySet()) {
                 msg += "\t" + s;
             }
@@ -128,7 +134,7 @@ public class caffeJavaCPP {
     }
 
     // Load the weights from the specified caffemodel(s) into the train and test nets.
-    private static void CopyLayers(FloatSolver solver, String model_list) {
+    static void CopyLayers(FloatSolver solver, String model_list) {
         String[] model_names = model_list.split(",");
         for (int i = 0; i < model_names.length; i++) {
             logger.info("Finetuning from " + model_names[i]);
@@ -140,141 +146,148 @@ public class caffeJavaCPP {
     }
 
     static {
-        // test.caffeJavaCPP commands to call by
-        //     test.caffeJavaCPP <command> <args>
+        // CaffeJavaCPP commands to call by
+        //     CaffeJavaCPP <command> <args>
         //
         // To add a command, define a function "int command()" and register it with
         // RegisterBrewFunction(name, func);
 
         // Device Query: show diagnostic information for a GPU device.
-        RegisterBrewFunction("device_query", () -> {
-            Integer gpu = flags.getValue("gpu");
-            if (gpu < 0) {
-                throw new RuntimeException("Need a device ID to query.");
+        RegisterBrewFunction("device_query", new BrewFunction() {
+            public int command() {
+                Integer gpu = flags.getValue("gpu");
+                if (gpu < 0) {
+                    throw new RuntimeException("Need a device ID to query.");
+                }
+                logger.info("Querying device ID = " + gpu);
+                Caffe.SetDevice(gpu);
+                Caffe.DeviceQuery();
+                return 0;
             }
-            logger.info("Querying device ID = " + gpu);
-            Caffe.SetDevice(gpu);
-            Caffe.DeviceQuery();
-            return 0;
         });
 
-        // Train or fine-tune a model.
-        RegisterBrewFunction("train", () -> {
-            Integer gpu = flags.getValue("gpu");
-            String solverFlag = flags.getValue("solver");
-            String snapshot = flags.getValue("snapshot");
-            String weights = flags.getValue("weights");
-            if (solverFlag.length() == 0) {
-                throw new RuntimeException("Need a solver definition to train.");
-            }
-            if (snapshot.length() > 0 && weights.length() > 0) {
-                throw new RuntimeException(
-                        "Give a snapshot to resume training or weights to finetune "
-                                + "but not both.");
-            }
+        // Train / Finetune a model.
+        RegisterBrewFunction("train", new BrewFunction() {
+            public int command() {
+                Integer gpu = flags.getValue("gpu");
+                String solverFlag = flags.getValue("solver");
+                String snapshot = flags.getValue("snapshot");
+                String weights = flags.getValue("weights");
+                if (solverFlag.length() == 0) {
+                    throw new RuntimeException("Need a solver definition to train.");
+                }
+                if (snapshot.length() > 0 && weights.length() > 0) {
+                    throw new RuntimeException(
+                            "Give a snapshot to resume training or weights to finetune "
+                                    + "but not both.");
+                }
 
-            SolverParameter solver_param = new SolverParameter();
-            ReadProtoFromTextFileOrDie(solverFlag, solver_param);
+                SolverParameter solver_param = new SolverParameter();
+                ReadProtoFromTextFileOrDie(solverFlag, solver_param);
 
-            // If the gpu flag is not provided, allow the mode and device to be set
-            // in the solver prototxt.
-            if (gpu < 0 && solver_param.solver_mode() == SolverParameter_SolverMode_GPU) {
-                gpu = solver_param.device_id();
+                // If the gpu flag is not provided, allow the mode and device to be set
+                // in the solver prototxt.
+                if (gpu < 0 && solver_param.solver_mode() == SolverParameter_SolverMode_GPU) {
+                    gpu = solver_param.device_id();
+                }
+
+                // Set device id and mode
+                if (gpu >= 0) {
+                    logger.info("Use GPU with device ID " + gpu);
+                    Caffe.SetDevice(gpu);
+                    Caffe.set_mode(Caffe.GPU);
+                } else {
+                    logger.info("Use CPU.");
+                    Caffe.set_mode(Caffe.CPU);
+                }
+
+                logger.info("Starting Optimization");
+                FloatSolver solver = FloatSolverRegistry.CreateSolver(solver_param);
+
+                if (snapshot.length() > 0) {
+                    logger.info("Resuming from " + snapshot);
+                    solver.Solve(snapshot);
+                } else if (weights.length() > 0) {
+                    CopyLayers(solver, weights);
+                    solver.Solve();
+                } else {
+                    solver.Solve();
+                }
+                logger.info("Optimization Done.");
+                return 0;
             }
-
-            // Set device id and mode
-            if (gpu >= 0) {
-                logger.info("Use GPU with device ID " + gpu);
-                Caffe.SetDevice(gpu);
-                Caffe.set_mode(Caffe.GPU);
-            } else {
-                logger.info("Use CPU.");
-                Caffe.set_mode(Caffe.CPU);
-            }
-
-            logger.info("Starting Optimization");
-            FloatSolver solver = FloatSolverRegistry.CreateSolver(solver_param);
-
-            if (snapshot.length() > 0) {
-                logger.info("Resuming from " + snapshot);
-                solver.Solve(snapshot);
-            } else if (weights.length() > 0) {
-                CopyLayers(solver, weights);
-                solver.Solve();
-            } else {
-                solver.Solve();
-            }
-            logger.info("Optimization Done.");
-            return 0;
         });
 
         // Test: score a model.
-        RegisterBrewFunction("test", () -> {
-            Integer gpu = flags.getValue("gpu");
-            String model = flags.getValue("model");
-            String weights = flags.getValue("weights");
-            Integer iterations = flags.getValue("iterations");
-            if (model.length() == 0) {
-                throw new RuntimeException("Need a model definition to score.");
-            }
-            if (weights.length() == 0) {
-                throw new RuntimeException("Need model weights to score.");
-            }
+        RegisterBrewFunction("test", new BrewFunction() {
+            public int command() {
+                Integer gpu = flags.getValue("gpu");
+                String model = flags.getValue("model");
+                String weights = flags.getValue("weights");
+                Integer iterations = flags.getValue("iterations");
+                if (model.length() == 0) {
+                    throw new RuntimeException("Need a model definition to score.");
+                }
+                if (weights.length() == 0) {
+                    throw new RuntimeException("Need model weights to score.");
+                }
 
-            // Set device id and mode
-            if (gpu >= 0) {
-                logger.info("Use GPU with device ID " + gpu);
-                Caffe.SetDevice(gpu);
-                Caffe.set_mode(Caffe.GPU);
-            } else {
-                logger.info("Use CPU.");
-                Caffe.set_mode(Caffe.CPU);
-            }
-            // Instantiate the test.caffeJavaCPP net.
-            FloatNet caffe_net = new FloatNet(model, TEST);
-            caffe_net.CopyTrainedLayersFrom(weights);
-            logger.info("Running for " + iterations + " iterations.");
+                // Set device id and mode
+                if (gpu >= 0) {
+                    logger.info("Use GPU with device ID " + gpu);
+                    Caffe.SetDevice(gpu);
+                    Caffe.set_mode(Caffe.GPU);
+                } else {
+                    logger.info("Use CPU.");
+                    Caffe.set_mode(Caffe.CPU);
+                }
+                // Instantiate the CaffeJavaCPP net.
+                FloatNet caffe_net = new FloatNet(model, TEST);
+                caffe_net.CopyTrainedLayersFrom(weights);
+                logger.info("Running for " + iterations + " iterations.");
 
-            FloatBlobVector bottom_vec = new FloatBlobVector();
-            ArrayList<Integer> test_score_output_id = new ArrayList<>();
-            ArrayList<Float> test_score = new ArrayList<>();
-            float loss = 0;
-            for (int i = 0; i < iterations; i++) {
-                float[] iter_loss = new float[1];
-                FloatBlobVector result = caffe_net.Forward(bottom_vec, iter_loss);
-                loss += iter_loss[0];
-                int idx = 0;
-                for (int j = 0; j < result.size(); j++) {
-                    FloatPointer result_vec = result.get(j).cpu_data();
-                    for (int k = 0; k < result.get(j).count(); k++, idx++) {
-                        float score = result_vec.get(k);
-                        if (i == 0) {
-                            test_score.add(score);
-                            test_score_output_id.add(j);
-                        } else {
-                            test_score.set(idx, test_score.get(idx) + score);
+                FloatBlobVector bottom_vec = new FloatBlobVector();
+                ArrayList<Integer> test_score_output_id = new ArrayList<Integer>();
+                ArrayList<Float> test_score = new ArrayList<Float>();
+                float loss = 0;
+                for (int i = 0; i < iterations; i++) {
+                    float[] iter_loss = new float[1];
+                    FloatBlobVector result = caffe_net.Forward(bottom_vec, iter_loss);
+                    loss += iter_loss[0];
+                    int idx = 0;
+                    for (int j = 0; j < result.size(); j++) {
+                        FloatPointer result_vec = result.get(j).cpu_data();
+                        for (int k = 0; k < result.get(j).count(); k++, idx++) {
+                            float score = result_vec.get(k);
+                            if (i == 0) {
+                                test_score.add(score);
+                                test_score_output_id.add(j);
+                            } else {
+                                test_score.set(idx, test_score.get(idx) + score);
+                            }
+                            String output_name = caffe_net.blob_names().get(
+                                    caffe_net.output_blob_indices().get(j)).getString();
+                            logger.info("Batch " + i + ", " + output_name + " = " + score);
                         }
-                        String output_name = caffe_net.blob_names().get(
-                                caffe_net.output_blob_indices().get(j)).getString();
-                        logger.info("Batch " + i + ", " + output_name + " = " + score);
                     }
                 }
+                loss /= iterations;
+                logger.info("Loss: " + loss);
+                for (int i = 0; i < test_score.size(); i++) {
+                    String output_name = caffe_net.blob_names().get(
+                            caffe_net.output_blob_indices().get(test_score_output_id.get(i))).getString();
+                    float loss_weight =
+                            caffe_net.blob_loss_weights().get(caffe_net.output_blob_indices().get(i));
+                    String loss_msg_stream = "";
+                    float mean_score = test_score.get(i) / iterations;
+                    if (loss_weight != 0) {
+                        loss_msg_stream = " (* " + loss_weight
+                                + " = " + (loss_weight * mean_score) + " loss)";
+                    }
+                    logger.info(output_name + " = " + mean_score + loss_msg_stream);
+                }
+                return 0;
             }
-            loss /= iterations;
-            logger.info("Loss: " + loss);
-            for (int i = 0; i < test_score.size(); i++) {
-//                String output_name = caffe_net.blob_names().get(caffe_net.output_blob_indices().get(test_score_output_id.get(i))).getString();
-//                System.out.println("Output name: " + output_name);
-//                float loss_weight = caffe_net.blob_loss_weights().get(caffe_net.output_blob_indices().get(i));
-//                String loss_msg_stream = "";
-//                float mean_score = test_score.get(i) / iterations;
-//                if (loss_weight != 0) {
-//                    loss_msg_stream = " (* " + loss_weight + " = " + (loss_weight * mean_score) + " loss)";
-//                }
-//                logger.info(output_name + " = " + mean_score + loss_msg_stream);
-                System.out.println("Score: " + test_score.get(i));
-            }
-            return 0;
         });
 
         // Time: benchmark the execution time of a model.
@@ -295,7 +308,7 @@ public class caffeJavaCPP {
                 logger.info("Use CPU.");
                 Caffe.set_mode(Caffe.CPU);
             }
-            // Instantiate the test.caffeJavaCPP net.
+            // Instantiate the CaffeJavaCPP net.
             FloatNet caffe_net = new FloatNet(model, TRAIN);
 
             // Do a clean forward and backward pass, so that memory allocation are done
@@ -363,24 +376,22 @@ public class caffeJavaCPP {
             logger.info("*** Benchmark ends ***");
             return 0;
         });
-
     }
 
     public static void main(String[] args) {
         // Print output to stderr (while still logging).
         logger.setLevel(Level.ALL);
-
         // Usage message.
         SetUsageMessage("command line brew\n"
-                + "usage: test.caffeJavaCPP <command> <args>\n\n"
+                + "usage: CaffeJavaCPP <command> <args>\n\n"
                 + "commands:\n"
-                + "  train           train or finetune a model\n"
+                + "  train           train or fine-tune a model\n"
                 + "  test            score a model\n"
                 + "  device_query    show GPU diagnostic information\n"
                 + "  time            benchmark model execution time");
-
         // Run tool or show usage.
         flags.init(args);
+        //GlobalInit(args);
         if (args.length > 0) {
             System.exit(GetBrewFunction(args[0]).command());
         } else {

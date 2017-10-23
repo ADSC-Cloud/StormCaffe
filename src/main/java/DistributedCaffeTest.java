@@ -21,7 +21,7 @@ public class DistributedCaffeTest {
         }
 
         Config config = new Config();
-        config.setNumWorkers(6);
+        config.setNumWorkers(4);
         config.setDebug(true);
 
         TopologyBuilder builder = new TopologyBuilder();

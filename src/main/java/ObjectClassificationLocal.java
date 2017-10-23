@@ -1,16 +1,23 @@
+/**
+ * The ObjectClassificationLocal is a Java implementation of a standalone object classification
+ * example. It adopts VGG model and runs on either CPU or GPU platform with Caffe installed.
+ * The number of target objects categories is 1000.
+ *
+ * To stop the running of program, press "Esc" (ASCII code: 27) to exit.
+ */
+
 import java.io.IOException;
 import java.util.List;
-import static org.bytedeco.javacpp.caffe.Caffe;
 
 import org.bytedeco.javacpp.opencv_core.*;
 import org.bytedeco.javacpp.opencv_imgproc.*;
 import org.bytedeco.javacpp.opencv_videoio.*;
-import caffe.CaffeClassifier;
 
+import static org.bytedeco.javacpp.caffe.Caffe;
 import static org.bytedeco.javacpp.opencv_highgui.*;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 
-public class CaffeExampleJava {
+public class ObjectClassificationLocal {
 
     public static void main(String[] args) throws IOException {
 
@@ -19,7 +26,7 @@ public class CaffeExampleJava {
         String meanValue = "/home/john/idea/stormCaffe/src/main/resources/VGG/mean.binaryproto";
         String labels   = "/home/john/idea/stormCaffe/src/main/resources/VGG/labels.txt";
 
-        Caffe.set_mode(Caffe.CPU);
+        Caffe.set_mode(Caffe.GPU);
         caffe.CaffeClassifier classifier = caffe.CaffeClassifier.create(model, weights, meanValue, labels);
 
         VideoCapture capture = new VideoCapture(0);

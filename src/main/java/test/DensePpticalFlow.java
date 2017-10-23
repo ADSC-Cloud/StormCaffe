@@ -13,9 +13,9 @@ import static org.bytedeco.javacpp.opencv_video.calcOpticalFlowFarneback;
 /**
  * Dense optical flow function implemented with Gunnar Farneback’s algorithm.
  */
-public class denseopticalflow {
+public class DensePpticalFlow {
     public static void main(String[] args) {
-        final VideoCapture videoCapture = new VideoCapture("/home/john/idea/stormCaffe/dense.avi");
+        final VideoCapture videoCapture = new VideoCapture("/home/john/idea/stormCaffe/src/main/resources/opticalflow/dense.avi");
 
         if (!videoCapture.isOpened()) {
             System.out.println("Failed to open video!");

@@ -1,3 +1,10 @@
+/**
+ * This program emulates Caffe running in distributed manner. It is used to test the following functions:
+ * 1. Identify running jars on local nodes;
+ * 2. Decompressing target folder in jars to destination directory;
+ * 3. Launch multiple Caffe threads at different nodes of a cluster.
+ */
+
 package bolt;
 
 import com.esotericsoftware.kryo.Kryo;
@@ -45,11 +52,11 @@ public class Bolt2 extends BaseRichBolt {
 //        frameFilePath = map.get("frameFilePath").toString();
 //        videoFilePath = map.get("videoFilePath").toString();
 //
-        // extract resources in cluster mode
-        if (mode.equals("cluster")) {
-            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");
-            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "opticalflow");
-        }
+//        // extract resources in cluster mode
+//        if (mode.equals("cluster")) {
+//            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");
+//            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "opticalflow");
+//        }
 
         this.outputCollector = outputCollector;
         kryo = new Kryo();

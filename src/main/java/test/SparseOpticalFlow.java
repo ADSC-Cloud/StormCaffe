@@ -1,6 +1,5 @@
 package test;
 
-import org.bytedeco.javacpp.BytePointer;
 import org.bytedeco.javacpp.indexer.FloatIndexer;
 import org.bytedeco.javacpp.indexer.UByteIndexer;
 import org.bytedeco.javacpp.opencv_core.*;
@@ -18,10 +17,10 @@ import static org.bytedeco.javacpp.opencv_video.calcOpticalFlowPyrLK;
 /**
  * Optical flow function implemented in Lucas-Kanade method with pyramids.
  */
-public class opticalflow {
+public class SparseOpticalFlow {
     public static void main(String[] args) {
 
-        final VideoCapture videoCapture = new VideoCapture("/home/john/idea/stormCaffe/traffic.avi");
+        final VideoCapture videoCapture = new VideoCapture("/home/john/idea/stormCaffe/src/main/resources/opticalflow/dense.avi");
 
         if (!videoCapture.isOpened()) {
             System.out.println("Failed to open video!");

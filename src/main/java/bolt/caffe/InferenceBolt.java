@@ -62,7 +62,7 @@ public class InferenceBolt extends BaseRichBolt implements IRichBolt {
         }
 
         // set Caffe configurations
-        Caffe.set_mode(Caffe.GPU);
+        Caffe.set_mode(Caffe.CPU);
         classifier = CaffeClassifier.create(model, weights, meanValue, labels);
         font = new CvFont();
         cvInitFont(font, CV_FONT_HERSHEY_PLAIN, 1.5, 1.5, 0, 2, 8);

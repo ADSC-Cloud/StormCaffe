@@ -9,6 +9,8 @@ import org.apache.storm.topology.base.BaseRichBolt;
 import org.apache.storm.tuple.Tuple;
 import org.bytedeco.javacpp.opencv_core.*;
 import static org.bytedeco.javacpp.opencv_highgui.*;
+
+import org.bytedeco.javacpp.opencv_videoio.*;
 import utils.ExtractResources;
 import utils.GetRunningJarPath;
 import utils.SerializableMat;

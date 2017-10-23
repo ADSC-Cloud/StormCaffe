@@ -4,7 +4,7 @@ import java.io.*;
 import org.bytedeco.javacpp.*;
 import static org.bytedeco.javacpp.hdf5.*;
 
-public class hdf5 {
+public class Hdf5 {
     static final String FILE_NAME = "h5tutr_cmprss.h5";
     static final String DATASET_NAME = "Compressed_Data";
     static final int DIM0 = 100;
@@ -118,6 +118,7 @@ public class hdf5 {
             System.exit(-1);
         }
 
+        System.out.println("Finished!");
         System.exit(0);  // successfully terminated
     }
 }

@@ -1,3 +1,9 @@
+/**
+ * This program adopts Lucas-Kanade method with pyramids algorithm to achieve sparse optical flow tracking
+ * functionality. A selection for pixels of interest will be performed before tracking so that only those
+ * pixels will be tracked.
+ */
+
 import bolt.cv.SparseBolt1;
 import bolt.cv.SparseBolt2;
 import bolt.cv.SparseBolt3;
@@ -28,9 +34,9 @@ public class SparseOpticalFlowTest {
         if (args.length == 1) {
             if (args[0].equals("local")) {
                 frameFilePath = "/home/john/idea-data/opticalflow/SparseOpticalFlowTest/";
-                videoFilePath = "/home/john/idea-data/opticalflow/pyrlk.avi";
+                videoFilePath = "/home/john/idea-data/opticalflow/traffic.avi";
 
-                // delete all existing files in ./data folder
+                // delete all existing files in frameFilePath folder
                 FileUtils.deleteDirectory(new File(frameFilePath));
                 FileUtils.forceMkdir(new File(frameFilePath));
 

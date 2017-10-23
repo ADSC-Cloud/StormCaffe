@@ -2,7 +2,7 @@ package test;
 
 import static org.bytedeco.javacpp.openblas.*;
 
-public class openblas {
+public class OpenBlas {
     /* Auxiliary routine: printing a matrix */
     static void print_matrix_rowmajor(String desc, int m, int n, double[] mat, int ldm) {
         int i, j;

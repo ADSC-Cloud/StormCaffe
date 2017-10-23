@@ -41,8 +41,7 @@ public class CaffeTest {
             Caffe.set_mode(Caffe.CPU);
         }
 
-
-        // Instantiate the test.caffeJavaCPP net.
+        // Instantiate the test.CaffeJavaCPP net.
         caffe_net = new FloatNet(modelPath, TEST);
         caffe_net.CopyTrainedLayersFrom(weightsPath);
         System.out.println("Running for " + iterations + " iterations.");

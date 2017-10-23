@@ -42,11 +42,11 @@ public class Bolt1 extends BaseRichBolt {
 //        frameFilePath = map.get("frameFilePath").toString();
 //        videoFilePath = map.get("videoFilePath").toString();
 //
-        // extract resources in cluster mode
-        if (mode.equals("cluster")) {
-            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");
-            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "opticalflow");
-        }
+//        // extract resources in cluster mode
+//        if (mode.equals("cluster")) {
+//            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "example");
+//            ExtractResources.extractResources(GetRunningJarPath.getRunningJarPath(), StormConfig.LOCAL_DATA_DIR, "opticalflow");
+//        }
 
         this.outputCollector = outputCollector;
         System.out.println("Start preparing bolt!");
@@ -60,15 +60,15 @@ public class Bolt1 extends BaseRichBolt {
 //        // Set device id and mode
 //        if (gpu >= 0) {
 //            System.out.println("Use GPU with device ID " + gpu);
-//            caffeJavaCPP.Caffe.SetDevice(gpu);
-//            caffeJavaCPP.Caffe.set_mode(caffeJavaCPP.Caffe.GPU);
+//            CaffeJavaCPP.Caffe.SetDevice(gpu);
+//            CaffeJavaCPP.Caffe.set_mode(CaffeJavaCPP.Caffe.GPU);
 //        } else {
 //            System.out.println("Use CPU.");
-//            caffeJavaCPP.Caffe.set_mode(caffeJavaCPP.Caffe.CPU);
+//            CaffeJavaCPP.Caffe.set_mode(CaffeJavaCPP.Caffe.CPU);
 //        }
 //
-//        // Instantiate the test.caffeJavaCPP net
-//        caffe_net = new caffeJavaCPP.FloatNet(modelPath, TEST);
+//        // Instantiate the test.CaffeJavaCPP net
+//        caffe_net = new CaffeJavaCPP.FloatNet(modelPath, TEST);
 //        caffe_net.CopyTrainedLayersFrom(weightsPath);
 //        System.out.println("Running for " + iterations + " iterations.");
 
@@ -81,13 +81,13 @@ public class Bolt1 extends BaseRichBolt {
         // prepare and emit other information to default stream
         String appendedWord = tuple.getString(0) + "&&&";
 
-//        bottom_vec = new caffeJavaCPP.FloatBlobVector();
+//        bottom_vec = new CaffeJavaCPP.FloatBlobVector();
 //        test_score_output_id = new ArrayList<>();
 //        test_score = new ArrayList<>();
 //        float loss = 0;
 //        for (int i = 0; i < iterations; i++) {
 //            float[] iter_loss = new float[1];
-//            caffeJavaCPP.FloatBlobVector result = caffe_net.Forward(bottom_vec, iter_loss);
+//            CaffeJavaCPP.FloatBlobVector result = caffe_net.Forward(bottom_vec, iter_loss);
 //            loss += iter_loss[0];
 //            int idx = 0;
 //            for (int j = 0; j < result.size(); j++) {

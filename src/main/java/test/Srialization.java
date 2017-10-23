@@ -4,9 +4,60 @@ import java.awt.event.ComponentAdapter;
 import java.io.*;
 
 /**
+ * This program uses Java's default Srialization/deserialization methods
+ * to operate on self-defined class.
+ *
  * Created by john on 2/7/17.
  */
-public class serialization {
+public class Srialization {
+
+    private static class Employee implements Serializable {
+        public String name;
+        public String address;
+        public int SSN;
+        public int number;
+        public transient Company company;
+
+        public Employee() {
+            this.name = "Default";
+            this.address = "Default";
+            this.SSN = 0;
+            this.number = 0;
+            this.company = new Company();
+        }
+
+        private void writeObject(ObjectOutputStream out) throws IOException {
+            out.defaultWriteObject();
+
+            if (company == null) company = new Company();
+            out.writeObject(company.name);
+            out.writeObject(company.regNumber);
+
+        }
+        private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+            in.defaultReadObject();
+
+            String name = (String)in.readObject();
+            int regNumber = (int)in.readObject();
+
+            this.company = new Company(name, regNumber);
+        }
+    }
+
+    private static class Company {
+        public String name;
+        public int regNumber;
+
+        public Company() {
+            this.name = "Default";
+            this.regNumber = 0;
+        }
+        public Company(String name, int regNumber) {
+            this.name = name;
+            this.regNumber = regNumber;
+        }
+    }
+
     public static void main(String[] args) {
         Company company = new Company();
         company.name = "ADSC";
@@ -50,52 +101,5 @@ public class serialization {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-    }
-}
-
-class Employee implements Serializable {
-    public String name;
-    public String address;
-    public int SSN;
-    public int number;
-    public transient Company company;
-
-    public Employee() {
-        this.name = "Default";
-        this.address = "Default";
-        this.SSN = 0;
-        this.number = 0;
-        this.company = new Company();
-    }
-
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        out.defaultWriteObject();
-
-        if (company == null) company = new Company();
-        out.writeObject(company.name);
-        out.writeObject(company.regNumber);
-
-    }
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
-        in.defaultReadObject();
-
-        String name = (String)in.readObject();
-        int regNumber = (int)in.readObject();
-
-        this.company = new Company(name, regNumber);
-    }
-}
-
-class Company {
-    public String name;
-    public int regNumber;
-
-    public Company() {
-        this.name = "Default";
-        this.regNumber = 0;
-    }
-    public Company(String name, int regNumber) {
-        this.name = name;
-        this.regNumber = regNumber;
     }
 }

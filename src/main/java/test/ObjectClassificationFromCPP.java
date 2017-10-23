@@ -1,20 +1,26 @@
-package test;
+/**
+ * This program is translated from a CPP version of Caffe-based real-time
+ * object classification program. It runs on VGG-19 model and displays the
+ * top-5 mostly possible objects in each frame.
+ */
 
-import static org.bytedeco.javacpp.opencv_videoio.*;
-import static org.bytedeco.javacpp.opencv_core.*;
-import static org.bytedeco.javacpp.opencv_imgproc.*;
-import static org.bytedeco.javacpp.opencv_highgui.*;
-import static org.bytedeco.javacpp.caffe.*;
+package test;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 
+import static org.bytedeco.javacpp.caffe.*;
+import static org.bytedeco.javacpp.opencv_core.*;
+import static org.bytedeco.javacpp.opencv_highgui.*;
+import static org.bytedeco.javacpp.opencv_imgproc.*;
+import static org.bytedeco.javacpp.opencv_videoio.*;
+
 
 /**
  * Created by john on 5/7/17.
  */
-public class ObjectDetectionCaffe {
+public class ObjectClassificationFromCPP {
 
     private static final int IMAGE_SIZE = 224;
     private static final int LABEL_COUNT = 1000;
@@ -55,14 +61,13 @@ public class ObjectDetectionCaffe {
     }
 
     private static void get_label(String filename, String[] label) {
-
         try {
             FileReader fileReader = new FileReader(filename);
             BufferedReader bufferedReader = new BufferedReader(fileReader);
             String line;
 
             int i;
-            for ( i = 0; i < LABEL_COUNT; i++) {
+            for (i = 0; i < LABEL_COUNT; i++) {
                 label[i] = bufferedReader.readLine();
             }
             fileReader.close();
@@ -72,7 +77,7 @@ public class ObjectDetectionCaffe {
         }
     }
 
-    private static void draw_output_ipl(IplImage img, float[] output, int[] idx, String[] label) {
+    private static void draw_output(IplImage img, float[] output, int[] idx, String[] label) {
         int i;
         CvFont font = new CvFont();
         String str;
@@ -99,14 +104,10 @@ public class ObjectDetectionCaffe {
         Caffe.SetDevice(device_id);
 
         // net
-        String model = "/home/john/CLionProjects/vgg19/VGG_ILSVRC_19_layers_deploy.prototxt";
-        String weights = "/home/john/CLionProjects/vgg19/VGG_ILSVRC_19_layers.caffemodel";
-        FloatNet caffe_test_net = new FloatNet(model, TEST);
+        String param = "/home/john/CLionProjects/vgg19/model/VGG_ILSVRC_19_layers_deploy.prototxt";
+        String weights = "/home/john/CLionProjects/vgg19/model/VGG_ILSVRC_19_layers.caffemodel";
+        FloatNet caffe_test_net = new FloatNet(param, TEST);
         caffe_test_net.CopyTrainedLayersFrom(weights);
-
-//        float[] iter_loss = new float[1];
-//        FloatBlobVector bottom_vec = new FloatBlobVector();
-//        FloatBlobVector test_result = caffe_test_net.Forward(bottom_vec, iter_loss);
 
         // read labels
         String labelPath = "/home/john/CLionProjects/vgg19/data/synset_words.txt";
@@ -115,11 +116,11 @@ public class ObjectDetectionCaffe {
 
         int i, j, k;
         int[] top5_idx = new int[5];
-        float mean_val[] = {103.939f, 116.779f, 123.68f};
+        float mean_val[] = {103.939f, 116.779f, 123.68f}; // bgr mean
 
         // input
         float[] output = new float[1000];
-        FloatBlobVector input_vec = new FloatBlobVector();
+        FloatBlobVector input_vec = new FloatBlobVector(1);
         FloatBlob blob = new FloatBlob(1, 3, IMAGE_SIZE, IMAGE_SIZE);
 
         // open camera
@@ -131,10 +132,11 @@ public class ObjectDetectionCaffe {
 
         cvNamedWindow("Test");
 
-        int key = 0;
-        while (key != 27) {
+        long frameCount = 1;
+        while (true) {
             cvGrabFrame(capture);
             frame = cvRetrieveFrame(capture);
+            System.out.println(frameCount + "st frame is being processed.");
 
             // crop input image
             int crop_widthStep = crop_image.widthStep();
@@ -167,15 +169,11 @@ public class ObjectDetectionCaffe {
                 }
             }
 
-            input_vec.put(blob);
+            input_vec.put(0, blob);
 
             // forward propagation
             float[] loss = new float[1];
-//            FloatBlobVector bottom_vec = new FloatBlobVector();
-
-            caffe_test_net.input_blobs().put(blob);
-            FloatBlobVector result = caffe_test_net.Forward(loss);
-//            FloatBlobVector result = caffe_test_net.Forward(input_vec, loss);
+            FloatBlobVector result = caffe_test_net.Forward(input_vec, loss);
 
             // copy output
             for (i = 0; i < LABEL_COUNT; i++) {
@@ -183,15 +181,18 @@ public class ObjectDetectionCaffe {
             }
 
             get_top5(output, top5_idx);
-            draw_output_ipl(crop_image, output, top5_idx, label);
+            draw_output(crop_image, output, top5_idx, label);
             cvShowImage("Test", crop_image);
 
-            if ((key = cvWaitKey(20) & 0xff) == 27) {
-                System.exit(-1);
+            if ((cvWaitKey(20) & 0xff) == 27) {
+                break;
             }
 
-//            input_vec.close();
+            input_vec.close();
+            input_vec = new FloatBlobVector(1);
+            frameCount++;
         }
+
         // release memory
         cvReleaseCapture(capture);
         cvReleaseImage(crop_image);

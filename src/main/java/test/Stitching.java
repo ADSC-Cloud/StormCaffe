@@ -6,10 +6,10 @@ import static org.bytedeco.javacpp.opencv_highgui.*;
 import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 import static org.bytedeco.javacpp.opencv_stitching.*;
 
-public class stitching {
+public class Stitching {
     static boolean try_use_gpu = false;
     static MatVector imgs = new MatVector();
-    static String result_name = "result.jpg";
+    static String result_name = "data/image/result.jpg";
 
     public static void main(String[] args) {
 
@@ -33,7 +33,7 @@ public class stitching {
     static void printUsage() {
         System.out.println(
                 "Rotation model images stitcher.\n\n"
-                        + "test.stitching img1 img2 [...imgN]\n\n"
+                        + "test.Stitching img1 img2 [...imgN]\n\n"
                         + "Flags:\n"
                         + "  --try_use_gpu (yes|no)\n"
                         + "      Try to use GPU. The default value is 'no'. All default values\n"
